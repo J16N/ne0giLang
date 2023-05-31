@@ -1,59 +1,50 @@
 import sys
-from typing import Optional
-from .scanner import Scanner
+from typing import Optional, ClassVar, cast
 from .token import Token
+from .scanner import Scanner
 
 
 class Lox:
-    had_error: bool = False
+    had_error: ClassVar[bool] = False
 
-    @staticmethod
-    def execute(file: Optional[str] = None) -> None:
+    @classmethod
+    def execute(cls, file: Optional[str] = None) -> None:
         if file:
-            Lox.run_file(file)
+            cls.run_file(file)
         else:
-            Lox.run_prompt()
+            cls.run_prompt()
 
-    @staticmethod
-    def run_file(file: str) -> None:
+    @classmethod
+    def run_file(cls, file: str) -> None:
         with open(file, "r") as f:
-            Lox.run(f.read())
+            cls.run(f.read())
 
             # Indicate an error in the exit code.
-            if Lox.had_error:
+            if cls.had_error:
                 sys.exit(65)
 
-    @staticmethod
-    def run_prompt() -> None:
+    @classmethod
+    def run_prompt(cls) -> None:
         while True:
             try:
                 line: str = input("> ")
-                Lox.run(line)
-                Lox.had_error = False
+                cls.run(line)
+                cls.had_error = False
             except KeyboardInterrupt:
                 break
 
-    @staticmethod
-    def run(source: str) -> None:
-        scanner: Scanner = Scanner(source)
+    @classmethod
+    def run(cls, source: str) -> None:
+        scanner: Scanner = Scanner(source, cast(cls, Lox))
         tokens: list[Token] = scanner.scan_tokens()
 
         for token in tokens:
             print(token)
 
-    @staticmethod
-    def error(line: int, message: str) -> None:
-        Lox.report(line, "", message)
+    @classmethod
+    def error(cls, line: int, message: str) -> None:
+        cls.report(line, "", message)
 
     @staticmethod
     def report(line: int, where: str, message: str) -> None:
         print(f"[line {line}] Error{where}: {message}")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 2:
-        print("Usage: lox.py [script]")
-        sys.exit(64)
-
-    file: Optional[str] = sys.argv[1] if (len(sys.argv) == 2) else None
-    Lox.execute(file)

@@ -1,16 +1,13 @@
-from typing import Final, Optional, Mapping
+from typing import Optional, Mapping, TYPE_CHECKING, ClassVar
 from .token_type import TokenType
 from .token import Token
-from .lox import Lox
+
+if TYPE_CHECKING:
+    from .lox import Lox
 
 
 class Scanner:
-    tokens: list[Token]
-    start: int = 0
-    current: int = 0
-    line: int = 1
-
-    keywords: Final[Mapping[str, TokenType]] = {
+    keywords: ClassVar[Mapping[str, TokenType]] = {
         "and": TokenType.AND,
         "class": TokenType.CLASS,
         "else": TokenType.ELSE,
@@ -29,19 +26,24 @@ class Scanner:
         "while": TokenType.WHILE,
     }
 
-    def __init__(self, source: str):
-        self.source: Final[str] = source
+    def __init__(self, source: str, agent: "Lox"):
+        self.tokens: list[Token] = []
+        self.start: int = 0
+        self.current: int = 0
+        self.line: int = 1
+        self.source: str = source
+        self.agent: Lox = agent
 
     def scan_tokens(self) -> list[Token]:
         while not self.is_at_end():
-            Scanner.start = Scanner.current
+            Scanner.start = self.current
             self.scan_token()
 
-        Scanner.tokens.append(Token(TokenType.EOF, "", None, Scanner.line))
-        return Scanner.tokens
+        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
+        return self.tokens
 
     def is_at_end(self) -> bool:
-        return Scanner.current >= len(self.source)
+        return self.current >= len(self.source)
 
     def scan_token(self) -> None:
         c: str = self.advance()
@@ -103,7 +105,7 @@ class Scanner:
                 pass
 
             case "\n":
-                Scanner.line += 1
+                self.line += 1
 
             case '"':
                 self.string()
@@ -114,45 +116,45 @@ class Scanner:
                 elif self.is_alpha(c):
                     self.identifier()
                 else:
-                    Lox.error(Scanner.line, "Unexpected character.")
+                    self.agent.error(self.line, "Unexpected character.")
 
     def advance(self) -> str:
-        Scanner.current += 1
-        return self.source[Scanner.current - 1]
+        self.current += 1
+        return self.source[self.current - 1]
 
     def add_token(self, type: TokenType, literal: Optional[object] = None) -> None:
-        text: str = self.source[Scanner.start : Scanner.current]
-        Scanner.tokens.append(Token(type, text, literal, Scanner.line))
+        text: str = self.source[Scanner.start : self.current]
+        self.tokens.append(Token(type, text, literal, self.line))
 
     def match(self, expected: str) -> bool:
         if self.is_at_end():
             return False
-        if self.source[Scanner.current] != expected:
+        if self.source[self.current] != expected:
             return False
 
-        Scanner.current += 1
+        self.current += 1
         return True
 
     def peek(self) -> str:
         if self.is_at_end():
             return "\0"
-        return self.source[Scanner.current]
+        return self.source[self.current]
 
     def string(self) -> None:
         while self.peek() != '"' and not self.is_at_end():
             if self.peek() == "\n":
-                Scanner.line += 1
+                self.line += 1
             self.advance()
 
         if self.is_at_end():
-            Lox.error(Scanner.line, "Unterminated string.")
+            self.agent.error(self.line, "Unterminated string.")
             return
 
         # The closing ".
         self.advance()
 
         # Trim the surrounding quotes.
-        value: str = self.source[Scanner.start + 1 : Scanner.current - 1]
+        value: str = self.source[Scanner.start + 1 : self.current - 1]
         self.add_token(TokenType.STRING, value)
 
     def is_digit(self, c: str) -> bool:
@@ -171,19 +173,19 @@ class Scanner:
                 self.advance()
 
         self.add_token(
-            TokenType.NUMBER, float(self.source[Scanner.start : Scanner.current])
+            TokenType.NUMBER, float(self.source[Scanner.start : self.current])
         )
 
     def peek_next(self) -> str:
-        if Scanner.current + 1 >= len(self.source):
+        if self.current + 1 >= len(self.source):
             return "\0"
-        return self.source[Scanner.current + 1]
+        return self.source[self.current + 1]
 
     def identifier(self) -> None:
         while self.is_alpha_numeric(self.peek()):
             self.advance()
 
-        text: str = self.source[Scanner.start : Scanner.current]
+        text: str = self.source[Scanner.start : self.current]
         type: TokenType = Scanner.keywords.get(text, TokenType.IDENTIFIER)
         self.add_token(type)
 
@@ -196,5 +198,5 @@ class Scanner:
     def block_comment(self) -> None:
         while not (self.is_at_end() or self.peek() != "*" and self.peek_next() != "/"):
             if self.peek() == "\n":
-                Scanner.line += 1
+                self.line += 1
             self.advance()

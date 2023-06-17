@@ -3,14 +3,16 @@ from typing import Final
 
 
 class Token:
-    def __init__(self, type: TokenType, lexeme: str, literal: object, line: int):
+    def __init__(
+        self: "Token", type: TokenType, lexeme: str, literal: object, line: int
+    ):
         self.type: Final[TokenType] = type
         self.lexeme: Final[str] = lexeme
         self.literal: Final[object] = literal
         self.line: Final[int] = line
 
-    def __repr__(self) -> str:
+    def __repr__(self: "Token") -> str:
         return f"{self.type} {self.lexeme} {self.literal}"
 
-    def __str__(self) -> str:
+    def __str__(self: "Token") -> str:
         return self.__repr__()

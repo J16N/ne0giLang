@@ -26,177 +26,188 @@ class Scanner:
         "while": TokenType.WHILE,
     }
 
-    def __init__(self, source: str, agent: "Lox"):
-        self.tokens: list[Token] = []
-        self.start: int = 0
-        self.current: int = 0
-        self.line: int = 1
-        self.source: str = source
-        self.agent: Lox = agent
+    def __init__(self: "Scanner", source: str, agent: "Lox"):
+        self._tokens: list[Token] = []
+        self._start: int = 0
+        self._current: int = 0
+        self._line: int = 1
+        self._source: str = source
+        self._agent: Lox = agent
 
-    def scan_tokens(self) -> list[Token]:
-        while not self.is_at_end():
-            Scanner.start = self.current
-            self.scan_token()
+    def scan_tokens(self: "Scanner") -> list[Token]:
+        while not self._is_at_end():
+            self._start = self._current
+            self._scan_token()
 
-        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
-        return self.tokens
+        self._tokens.append(Token(TokenType.EOF, "", None, self._line))
+        return self._tokens
 
-    def is_at_end(self) -> bool:
-        return self.current >= len(self.source)
+    def _is_at_end(self: "Scanner") -> bool:
+        return self._current >= len(self._source)
 
-    def scan_token(self) -> None:
-        c: str = self.advance()
+    def _scan_token(self: "Scanner") -> None:
+        c: str = self._advance()
         match (c):
             case "(":
-                self.add_token(TokenType.LEFT_PAREN)
+                self._add_token(TokenType.LEFT_PAREN)
             case ")":
-                self.add_token(TokenType.RIGHT_PAREN)
+                self._add_token(TokenType.RIGHT_PAREN)
             case "{":
-                self.add_token(TokenType.LEFT_BRACE)
+                self._add_token(TokenType.LEFT_BRACE)
             case "}":
-                self.add_token(TokenType.RIGHT_BRACE)
+                self._add_token(TokenType.RIGHT_BRACE)
             case ",":
-                self.add_token(TokenType.COMMA)
+                self._add_token(TokenType.COMMA)
             case ".":
-                self.add_token(TokenType.DOT)
+                self._add_token(TokenType.DOT)
             case "-":
-                self.add_token(TokenType.MINUS)
+                self._add_token(TokenType.MINUS)
             case "+":
-                self.add_token(TokenType.PLUS)
+                self._add_token(TokenType.PLUS)
             case ";":
-                self.add_token(TokenType.SEMICOLON)
+                self._add_token(TokenType.SEMICOLON)
             case "*":
-                self.add_token(TokenType.STAR)
+                self._add_token(TokenType.STAR)
+            case "?":
+                self._add_token(TokenType.QUESTION)
+            case ":":
+                self._add_token(TokenType.COLON)
 
             case "!":
-                self.add_token(
-                    TokenType.BANG_EQUAL if self.match("=") else TokenType.BANG
+                self._add_token(
+                    TokenType.BANG_EQUAL if self._match("=") else TokenType.BANG
                 )
 
             case "=":
-                self.add_token(
-                    TokenType.EQUAL_EQUAL if self.match("=") else TokenType.EQUAL
+                self._add_token(
+                    TokenType.EQUAL_EQUAL if self._match("=") else TokenType.EQUAL
                 )
 
             case "<":
-                self.add_token(
-                    TokenType.LESS_EQUAL if self.match("=") else TokenType.LESS
+                self._add_token(
+                    TokenType.LESS_EQUAL if self._match("=") else TokenType.LESS
                 )
 
             case ">":
-                self.add_token(
-                    TokenType.GREATER_EQUAL if self.match("=") else TokenType.GREATER
+                self._add_token(
+                    TokenType.GREATER_EQUAL if self._match("=") else TokenType.GREATER
                 )
 
-            case "/" if self.match("/"):
+            case "/" if self._match("/"):
                 # A comment goes until the end of the line.
-                while self.peek() != "\n" and not self.is_at_end():
-                    self.advance()
+                while self._peek() != "\n" and not self._is_at_end():
+                    self._advance()
 
-            case "/" if self.match("*"):
-                self.block_comment()
+            case "/" if self._match("*"):
+                self._block_comment()
 
             case "/":
-                self.add_token(TokenType.SLASH)
+                self._add_token(TokenType.SLASH)
 
             case " " | "\r" | "\t":
                 # Ignore whitespace.
                 pass
 
             case "\n":
-                self.line += 1
+                self._line += 1
 
             case '"':
-                self.string()
+                self._string()
 
             case _:
-                if self.is_digit(c):
-                    self.number()
-                elif self.is_alpha(c):
-                    self.identifier()
+                if self._is_digit(c):
+                    self._number()
+                elif self._is_alpha(c):
+                    self._identifier()
                 else:
-                    self.agent.error(self.line, "Unexpected character.")
+                    self._agent.error_on_line(self._line, "Unexpected character.")
 
-    def advance(self) -> str:
-        self.current += 1
-        return self.source[self.current - 1]
+    def _advance(self: "Scanner") -> str:
+        self._current += 1
+        return self._source[self._current - 1]
 
-    def add_token(self, type: TokenType, literal: Optional[object] = None) -> None:
-        text: str = self.source[Scanner.start : self.current]
-        self.tokens.append(Token(type, text, literal, self.line))
+    def _add_token(
+        self: "Scanner", type: TokenType, literal: Optional[object] = None
+    ) -> None:
+        text: str = self._source[self._start : self._current]
+        self._tokens.append(Token(type, text, literal, self._line))
 
-    def match(self, expected: str) -> bool:
-        if self.is_at_end():
+    def _match(self: "Scanner", expected: str) -> bool:
+        if self._is_at_end():
             return False
-        if self.source[self.current] != expected:
+        if self._source[self._current] != expected:
             return False
 
-        self.current += 1
+        self._current += 1
         return True
 
-    def peek(self) -> str:
-        if self.is_at_end():
+    def _peek(self: "Scanner") -> str:
+        if self._is_at_end():
             return "\0"
-        return self.source[self.current]
+        return self._source[self._current]
 
-    def string(self) -> None:
-        while self.peek() != '"' and not self.is_at_end():
-            if self.peek() == "\n":
-                self.line += 1
-            self.advance()
+    def _string(self: "Scanner") -> None:
+        while self._peek() != '"' and not self._is_at_end():
+            if self._peek() == "\n":
+                self._line += 1
+            self._advance()
 
-        if self.is_at_end():
-            self.agent.error(self.line, "Unterminated string.")
+        if self._is_at_end():
+            self._agent.error_on_line(self._line, "Unterminated string.")
             return
 
         # The closing ".
-        self.advance()
+        self._advance()
 
         # Trim the surrounding quotes.
-        value: str = self.source[Scanner.start + 1 : self.current - 1]
-        self.add_token(TokenType.STRING, value)
+        value: str = self._source[self._start + 1 : self._current - 1]
+        self._add_token(TokenType.STRING, value)
 
-    def is_digit(self, c: str) -> bool:
+    def _is_digit(self: "Scanner", c: str) -> bool:
         return c >= "0" and c <= "9"
 
-    def number(self) -> None:
-        while self.is_digit(self.peek()):
-            self.advance()
+    def _number(self: "Scanner") -> None:
+        while self._is_digit(self._peek()):
+            self._advance()
 
         # Look for a fractional part.
-        if self.peek() == "." and self.is_digit(self.peek_next()):
+        if self._peek() == "." and self._is_digit(self._peek_next()):
             # Consume the "."
-            self.advance()
+            self._advance()
 
-            while self.is_digit(self.peek()):
-                self.advance()
+            while self._is_digit(self._peek()):
+                self._advance()
 
-        self.add_token(
-            TokenType.NUMBER, float(self.source[Scanner.start : self.current])
+        self._add_token(
+            TokenType.NUMBER, float(self._source[self._start : self._current])
         )
 
-    def peek_next(self) -> str:
-        if self.current + 1 >= len(self.source):
+    def _peek_next(self: "Scanner") -> str:
+        if self._current + 1 >= len(self._source):
             return "\0"
-        return self.source[self.current + 1]
+        return self._source[self._current + 1]
 
-    def identifier(self) -> None:
-        while self.is_alpha_numeric(self.peek()):
-            self.advance()
+    def _identifier(self: "Scanner") -> None:
+        while self._is_alpha_numeric(self._peek()):
+            self._advance()
 
-        text: str = self.source[Scanner.start : self.current]
+        text: str = self._source[self._start : self._current]
         type: TokenType = Scanner.keywords.get(text, TokenType.IDENTIFIER)
-        self.add_token(type)
+        self._add_token(type)
 
-    def is_alpha(self, c: str) -> bool:
+    def _is_alpha(self: "Scanner", c: str) -> bool:
         return (c >= "a" and c <= "z") or (c >= "A" and c <= "Z") or c == "_"
 
-    def is_alpha_numeric(self, c: str) -> bool:
-        return self.is_alpha(c) or self.is_digit(c)
+    def _is_alpha_numeric(self: "Scanner", c: str) -> bool:
+        return self._is_alpha(c) or self._is_digit(c)
 
-    def block_comment(self) -> None:
-        while not (self.is_at_end() or self.peek() != "*" and self.peek_next() != "/"):
-            if self.peek() == "\n":
-                self.line += 1
-            self.advance()
+    def _block_comment(self: "Scanner") -> None:
+        while not (
+            self._is_at_end() or self._peek() != "*" and self._peek_next() != "/"
+        ):
+            if self._peek() == "\n":
+                self._line += 1
+            self._advance()
+
+        self._advance()  # consume the "*"
+        self._advance()  # consume the "/"

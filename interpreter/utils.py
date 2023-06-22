@@ -1,6 +1,7 @@
 import time
-from .callable import Callable
 from typing import TYPE_CHECKING
+
+from .callable import Callable
 
 if TYPE_CHECKING:
     from .interpreter import Interpreter

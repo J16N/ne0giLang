@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Final, Optional
-from .expr import Expr, Function as FunctionExpr
-from .token import Token
+from typing import Final, Generic, Optional, TypeVar
 
+from .expr import Expr
+from .expr import Function as FunctionExpr
+from .token import Token
 
 T = TypeVar("T")
 

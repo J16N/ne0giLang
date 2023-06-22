@@ -1,4 +1,5 @@
 from typing import Final, Optional
+
 from .exceptions import RuntimeError
 from .token import Token
 from .types import Uninitialized

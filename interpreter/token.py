@@ -1,5 +1,6 @@
-from .token_type import TokenType
 from typing import Final
+
+from .token_type import TokenType
 
 
 class Token:
@@ -12,7 +13,15 @@ class Token:
         self.line: Final[int] = line
 
     def __repr__(self: "Token") -> str:
-        return f"{self.type} {self.lexeme} {self.literal}"
+        return f"Token(type={self.type.name}, lexeme='{self.lexeme}', literal={self.literal})"
 
     def __str__(self: "Token") -> str:
         return self.__repr__()
+
+    def __hash__(self: "Token") -> int:
+        return hash(f"{self.type}{self.lexeme}")
+
+    def __eq__(self: "Token", other: object) -> bool:
+        if not isinstance(other, Token):
+            return False
+        return self.type == other.type and self.lexeme == other.lexeme

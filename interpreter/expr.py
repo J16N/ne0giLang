@@ -1,6 +1,7 @@
-from .token import Token
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Final, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Final, Generic, Optional, TypeVar
+
+from .token import Token
 
 if TYPE_CHECKING:
     from .stmt import Stmt

@@ -1,6 +1,7 @@
-from typing import Optional, Mapping, TYPE_CHECKING, ClassVar
-from .token_type import TokenType
+from typing import TYPE_CHECKING, ClassVar, Mapping, Optional
+
 from .token import Token
+from .token_type import TokenType
 
 if TYPE_CHECKING:
     from .lox import Lox

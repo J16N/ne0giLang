@@ -1,34 +1,13 @@
-from typing import Final, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Final, Optional
+
+from .expr import Assign, Binary, Call, Comma, Expr
+from .expr import Function as FunctionExpr
+from .expr import Grouping, Literal, Logical, Ternary, Unary, Variable
+from .stmt import Block, Break, Continue, Expression, For
+from .stmt import Function as FunctionStmt
+from .stmt import If, MultiVar, Return, Stmt, Var, While
 from .token import Token
 from .token_type import TokenType
-from .expr import (
-    Assign,
-    Binary,
-    Call,
-    Comma,
-    Expr,
-    Function as FunctionExpr,
-    Grouping,
-    Literal,
-    Logical,
-    Ternary,
-    Unary,
-    Variable,
-)
-from .stmt import (
-    Block,
-    Break,
-    Continue,
-    Expression,
-    For,
-    Function as FunctionStmt,
-    If,
-    MultiVar,
-    Return,
-    Stmt,
-    Var,
-    While,
-)
 
 if TYPE_CHECKING:
     from .lox import Lox

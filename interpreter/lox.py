@@ -1,16 +1,16 @@
 import sys
-from typing import Optional, ClassVar, cast
-from .token import Token
-from .parser import Parser
-from .scanner import Scanner
-from .token_type import TokenType
+from typing import ClassVar, Optional, cast
 
-# from tools.ast_printer import AstPrinter
-from .parser import ParseError
 from .exceptions import RuntimeError
 from .interpreter import Interpreter
-from .stmt import Stmt
+
+# from tools.ast_printer import AstPrinter
+from .parser import ParseError, Parser
 from .resolver import Resolver
+from .scanner import Scanner
+from .stmt import Stmt
+from .token import Token
+from .token_type import TokenType
 
 
 class Lox:
@@ -67,6 +67,7 @@ class Lox:
     def run(cls, source: str) -> None:
         scanner: Scanner = Scanner(source, cast(Lox, cls))
         tokens: list[Token] = scanner.scan_tokens()
+        print(*tokens, sep="\n")
         parser: Parser = Parser(tokens, cast(Lox, cls))
         statements: list[Optional[Stmt]] = parser.parse()
 

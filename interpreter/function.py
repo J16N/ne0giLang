@@ -1,8 +1,9 @@
+from typing import TYPE_CHECKING, Final, Optional
+
 from .callable import Callable
-from .expr import Function as FunctionExpr
-from typing import Final, TYPE_CHECKING, Optional
 from .environment import Environment
 from .exceptions import Return
+from .expr import Function as FunctionExpr
 
 if TYPE_CHECKING:
     from .interpreter import Interpreter

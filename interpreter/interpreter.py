@@ -1,40 +1,24 @@
-from typing import cast, TYPE_CHECKING, Optional, Final
+from typing import TYPE_CHECKING, Final, Optional, cast
+
+from .callable import Callable
+from .environment import Environment
+from .exceptions import Break, Continue, Return, RuntimeError
+from .expr import Assign, Binary, Call, Comma, Expr
+from .expr import Function as FunctionExpr
+from .expr import Grouping, Literal, Logical, Ternary, Unary, Variable
+from .expr import Visitor as ExprVisitor
+from .function import Function
+from .stmt import Block, Expression, For
+from .stmt import Function as FunctionStmt
+from .stmt import If, MultiVar
+from .stmt import Return as ReturnStmt
+from .stmt import Stmt, Var
+from .stmt import Visitor as StmtVisitor
+from .stmt import While
 from .token import Token
 from .token_type import TokenType
-from .exceptions import Break, Continue, Return, RuntimeError
-from .expr import (
-    Assign,
-    Binary,
-    Call,
-    Comma,
-    Expr,
-    Function as FunctionExpr,
-    Grouping,
-    Literal,
-    Logical,
-    Ternary,
-    Unary,
-    Variable,
-    Visitor as ExprVisitor,
-)
-from .stmt import (
-    Block,
-    Expression,
-    For,
-    Function as FunctionStmt,
-    If,
-    MultiVar,
-    Return as ReturnStmt,
-    Stmt,
-    Var,
-    Visitor as StmtVisitor,
-    While,
-)
-from .environment import Environment
 from .types import Uninitialized
-from .callable import Callable
 from .utils import Clock, Print
-from .function import Function
 
 if TYPE_CHECKING:
     from .lox import Lox

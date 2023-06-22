@@ -133,7 +133,7 @@ class Parser:
         return FunctionStmt(name, self._function_body(kind))
 
     def _function_body(self: "Parser", kind: str) -> FunctionExpr:
-        self._consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind} name.")
+        self._consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind}.")
         parameters: list[Token] = []
 
         if not self._check(TokenType.RIGHT_PAREN):

@@ -34,15 +34,16 @@ class TokenType(Enum):
 
     # Keywords
     AND = "&&"
+    BREAK = "break"
     CLASS = "class"
+    CONTINUE = "continue"
     ELSE = "else"
     FALSE = "false"
-    FUN = "fun"
+    FN = "fn"
     FOR = "for"
     IF = "if"
     NIL = "nil"
     OR = "||"
-    PRINT = "print"
     RETURN = "return"
     SUPER = "super"
     THIS = "this"

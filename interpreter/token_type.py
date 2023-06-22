@@ -26,6 +26,15 @@ class TokenType(Enum):
     GREATER_EQUAL = ">="
     LESS = "<"
     LESS_EQUAL = "<="
+    INCREMENT = "++"
+    DECREMENT = "--"
+    POWER = "**"
+    PLUS_EQUAL = "+="
+    MINUS_EQUAL = "-="
+    STAR_EQUAL = "*="
+    SLASH_EQUAL = "/="
+    MODULO = "%"
+    MODULO_EQUAL = "%="
 
     # Literals
     IDENTIFIER = "IDENTIFIER"

@@ -67,7 +67,6 @@ class Lox:
     def run(cls, source: str) -> None:
         scanner: Scanner = Scanner(source, cast(Lox, cls))
         tokens: list[Token] = scanner.scan_tokens()
-        print(*tokens, sep="\n")
         parser: Parser = Parser(tokens, cast(Lox, cls))
         statements: list[Optional[Stmt]] = parser.parse()
 
@@ -105,3 +104,7 @@ class Lox:
     def runtime_error(cls, error: RuntimeError) -> None:
         print(f"[line {error.token.line}] {error.message}")
         cls.had_runtime_error = True
+
+    @classmethod
+    def warn(cls, token: Token, message: str) -> None:
+        print(f"[line {token.line}] Warning: {message}")

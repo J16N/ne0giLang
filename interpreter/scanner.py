@@ -9,15 +9,16 @@ if TYPE_CHECKING:
 class Scanner:
     keywords: ClassVar[Mapping[str, TokenType]] = {
         "and": TokenType.AND,
+        "break": TokenType.BREAK,
         "class": TokenType.CLASS,
+        "continue": TokenType.CONTINUE,
         "else": TokenType.ELSE,
         "false": TokenType.FALSE,
         "for": TokenType.FOR,
-        "fun": TokenType.FUN,
+        "fn": TokenType.FN,
         "if": TokenType.IF,
         "nil": TokenType.NIL,
         "or": TokenType.OR,
-        "print": TokenType.PRINT,
         "return": TokenType.RETURN,
         "super": TokenType.SUPER,
         "this": TokenType.THIS,

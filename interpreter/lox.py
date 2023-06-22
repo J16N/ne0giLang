@@ -4,11 +4,13 @@ from .token import Token
 from .parser import Parser
 from .scanner import Scanner
 from .token_type import TokenType
-from .expr import Expr
-from tools.ast_printer import AstPrinter
+
+# from tools.ast_printer import AstPrinter
 from .parser import ParseError
-from .runtime_error import RuntimeError
+from .exceptions import RuntimeError
 from .interpreter import Interpreter
+from .stmt import Stmt
+from .resolver import Resolver
 
 
 class Lox:
@@ -18,30 +20,39 @@ class Lox:
 
     @classmethod
     def execute(cls, file: Optional[str] = None) -> None:
-        cls._interpreter = Interpreter(cast(Lox, cls))
-
         if file:
+            cls._interpreter = Interpreter(cast(Lox, cls))
             cls.run_file(file)
         else:
+            cls._interpreter = Interpreter(cast(Lox, cls), True)
             cls.run_prompt()
 
     @classmethod
     def run_file(cls, file: str) -> None:
-        with open(file, "r") as f:
-            cls.run(f.read())
+        try:
+            with open(file, "r") as f:
+                try:
+                    cls.run(f.read())
 
-            # Indicate an error in the exit code.
-            if cls.had_error:
-                sys.exit(65)
-            if cls.had_runtime_error:
-                sys.exit(70)
+                    # Indicate an error in the exit code.
+                    if cls.had_error:
+                        sys.exit(65)
+                    if cls.had_runtime_error:
+                        sys.exit(70)
+
+                except KeyboardInterrupt:
+                    print("\nKeyboardInterrupt")
+
+        except FileNotFoundError:
+            print(f"Error: File '{file}' not found.")
+            sys.exit(74)
 
     @classmethod
     def run_prompt(cls) -> None:
         while True:
             try:
                 line: str = input("> ")
-                cls.run(line)
+                cls.run(f"{line};")
             except KeyboardInterrupt:
                 break
             except ParseError:
@@ -57,14 +68,21 @@ class Lox:
         scanner: Scanner = Scanner(source, cast(Lox, cls))
         tokens: list[Token] = scanner.scan_tokens()
         parser: Parser = Parser(tokens, cast(Lox, cls))
-        expression: Expr = parser.parse()
+        statements: list[Optional[Stmt]] = parser.parse()
 
         # Stop if there was a syntax error.
         if cls.had_error:
             return
 
-        cls._interpreter.interpret(expression)
-        print(AstPrinter().print(expression))
+        resolver: Resolver = Resolver(cast(Lox, cls), cls._interpreter)
+        resolver.resolve(statements)
+
+        # Stop if there was a resolution error.
+        if cls.had_error:
+            return
+
+        cls._interpreter.interpret(statements)
+        # print(AstPrinter().print(expression))
 
     @classmethod
     def error_on_line(cls, line: int, message: str) -> None:
@@ -73,15 +91,16 @@ class Lox:
     @classmethod
     def error_on_token(cls, token: Token, message: str) -> None:
         if token.type == TokenType.EOF:
-            cls.report(token.line, " at end", message)
+            cls.report(token.line, "at end", message)
         else:
-            cls.report(token.line, f" at '{token.lexeme}'", message)
+            cls.report(token.line, f"at '{token.lexeme}'", message)
 
-    @staticmethod
-    def report(line: int, where: str, message: str) -> None:
-        print(f"[line {line}] Error{where}: {message}")
+    @classmethod
+    def report(cls, line: int, where: str, message: str) -> None:
+        print(f"[line {line}] Error {where}: {message}")
+        cls.had_error = True
 
-    @staticmethod
-    def runtime_error(error: RuntimeError) -> None:
+    @classmethod
+    def runtime_error(cls, error: RuntimeError) -> None:
         print(f"[line {error.token.line}] {error.message}")
-        Lox.had_runtime_error = True
+        cls.had_runtime_error = True

@@ -1,6 +1,9 @@
-from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Final
 from .token import Token
+from abc import ABC, abstractmethod
+from typing import TypeVar, Generic, Final, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .stmt import Stmt
 
 T = TypeVar("T")
 
@@ -11,13 +14,13 @@ class Expr(ABC):
         ...
 
 
-# class Assign(Expr):
-#     def __init__(self: "Assign", name: Token, value: Expr):
-#         self.name: Final[Token] = name
-#         self.value: Final[Expr] = value
+class Assign(Expr):
+    def __init__(self: "Assign", name: Token, value: Expr):
+        self.name: Final[Token] = name
+        self.value: Final[Expr] = value
 
-#     def accept(self: "Assign", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_assign_expr(self)
+    def accept(self: "Assign", visitor: "Visitor[T]") -> T:
+        return visitor.visit_assign_expr(self)
 
 
 class Binary(Expr):
@@ -30,14 +33,14 @@ class Binary(Expr):
         return visitor.visit_binary_expr(self)
 
 
-# class Call(Expr):
-#     def __init__(self: "Call", callee: Expr, paren: Token, arguments: list[Expr]):
-#         self.callee: Final[Expr] = callee
-#         self.paren: Final[Token] = paren
-#         self.arguments: Final[list[Expr]] = arguments
+class Call(Expr):
+    def __init__(self: "Call", callee: Expr, paren: Token, arguments: list[Expr]):
+        self.callee: Final[Expr] = callee
+        self.paren: Final[Token] = paren
+        self.arguments: Final[list[Expr]] = arguments
 
-#     def accept(self: "Call", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_call_expr(self)
+    def accept(self: "Call", visitor: "Visitor[T]") -> T:
+        return visitor.visit_call_expr(self)
 
 
 class Comma(Expr):
@@ -50,13 +53,13 @@ class Comma(Expr):
         return visitor.visit_comma_expr(self)
 
 
-# class Function(Expr):
-#     def __init__(self: "Function", params: list[Token], body: list[Stmt]):
-#         self.params: Final[list[Token]] = params
-#         self.body: Final[list[Stmt]] = body
+class Function(Expr):
+    def __init__(self: "Function", params: list[Token], body: list[Optional["Stmt"]]):
+        self.params: Final[list[Token]] = params
+        self.body: Final[list[Optional["Stmt"]]] = body
 
-#     def accept(self: "Function", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_function_expr(self)
+    def accept(self: "Function", visitor: "Visitor[T]") -> T:
+        return visitor.visit_function_expr(self)
 
 
 # class Get(Expr):
@@ -84,14 +87,14 @@ class Literal(Expr):
         return visitor.visit_literal_expr(self)
 
 
-# class Logical(Expr):
-#     def __init__(self: "Logical", left: Expr, operator: Token, right: Expr):
-#         self.left: Final[Expr] = left
-#         self.operator: Final[Token] = operator
-#         self.right: Final[Expr] = right
+class Logical(Expr):
+    def __init__(self: "Logical", left: Expr, operator: Token, right: Expr):
+        self.left: Final[Expr] = left
+        self.operator: Final[Token] = operator
+        self.right: Final[Expr] = right
 
-#     def accept(self: "Logical", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_logical_expr(self)
+    def accept(self: "Logical", visitor: "Visitor[T]") -> T:
+        return visitor.visit_logical_expr(self)
 
 
 # class Set(Expr):
@@ -133,34 +136,34 @@ class Unary(Expr):
         return visitor.visit_unary_expr(self)
 
 
-# class Variable(Expr):
-#     def __init__(self: "Variable", name: Token):
-#         self.name: Final[Token] = name
+class Variable(Expr):
+    def __init__(self: "Variable", name: Token):
+        self.name: Final[Token] = name
 
-#     def accept(self: "Variable", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_variable_expr(self)
+    def accept(self: "Variable", visitor: "Visitor[T]") -> T:
+        return visitor.visit_variable_expr(self)
 
 
 class Visitor(ABC, Generic[T]):
-    # @abstractmethod
-    # def visit_assign_expr(self: "Visitor[T]", expr: Assign) -> T:
-    #     ...
+    @abstractmethod
+    def visit_assign_expr(self: "Visitor[T]", expr: Assign) -> T:
+        ...
 
     @abstractmethod
     def visit_binary_expr(self: "Visitor[T]", expr: Binary) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_call_expr(self: "Visitor[T]", expr: Call) -> T:
-    #     ...
+    @abstractmethod
+    def visit_call_expr(self: "Visitor[T]", expr: Call) -> T:
+        ...
 
     @abstractmethod
     def visit_comma_expr(self: "Visitor[T]", expr: Comma) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_function_expr(self: "Visitor[T]", expr: Function) -> T:
-    #     ...
+    @abstractmethod
+    def visit_function_expr(self: "Visitor[T]", expr: Function) -> T:
+        ...
 
     # @abstractmethod
     # def visit_get_expr(self: "Visitor[T]", expr: Get) -> T:
@@ -174,9 +177,9 @@ class Visitor(ABC, Generic[T]):
     def visit_literal_expr(self: "Visitor[T]", expr: Literal) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_logical_expr(self: "Visitor[T]", expr: Logical) -> T:
-    #     ...
+    @abstractmethod
+    def visit_logical_expr(self: "Visitor[T]", expr: Logical) -> T:
+        ...
 
     # @abstractmethod
     # def visit_set_expr(self: "Visitor[T]", expr: Set) -> T:
@@ -194,6 +197,6 @@ class Visitor(ABC, Generic[T]):
     def visit_unary_expr(self: "Visitor[T]", expr: Unary) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_variable_expr(self: "Visitor[T]", expr: Variable) -> T:
-    #     ...
+    @abstractmethod
+    def visit_variable_expr(self: "Visitor[T]", expr: Variable) -> T:
+        ...

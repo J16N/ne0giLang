@@ -1,35 +1,19 @@
 from enum import Enum
-from typing import Final, Optional, TYPE_CHECKING
-from .expr import (
-    Assign,
-    Binary,
-    Call,
-    Comma,
-    Expr,
-    Function as FunctionExpr,
-    Grouping,
-    Literal,
-    Logical,
-    Ternary,
-    Unary,
-    Variable,
-    Visitor as ExprVisitor,
-)
-from .stmt import (
-    Block,
-    Expression,
-    For,
-    Function as FunctionStmt,
-    If,
-    MultiVar,
-    Return as ReturnStmt,
-    Stmt,
-    Var,
-    Visitor as StmtVisitor,
-    While,
-)
-from .token import Token
+from typing import TYPE_CHECKING, Final, Optional
+
+from .expr import Assign, Binary, Call, Comma, Expr
+from .expr import Function as FunctionExpr
+from .expr import Grouping, Literal, Logical, Ternary, Unary, Variable
+from .expr import Visitor as ExprVisitor
 from .interpreter import Interpreter
+from .stmt import Block, Expression, For
+from .stmt import Function as FunctionStmt
+from .stmt import If, MultiVar
+from .stmt import Return as ReturnStmt
+from .stmt import Stmt, Var
+from .stmt import Visitor as StmtVisitor
+from .stmt import While
+from .token import Token
 
 if TYPE_CHECKING:
     from .lox import Lox
@@ -40,10 +24,24 @@ class FunctionType(Enum):
     FUNCTION = "function"
 
 
+class VariableTracker:
+    def __init__(
+        self: "VariableTracker", initialized: bool = False, occurence: int = 1
+    ):
+        self.initialized: bool = initialized
+        self.occurence: int = occurence
+
+    def __repr__(self: "VariableTracker") -> str:
+        return f"VariableTracker(initialized={self.initialized}, occurence={self.occurence})"
+
+    def __str__(self: "VariableTracker") -> str:
+        return self.__repr__()
+
+
 class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def __init__(self: "Resolver", agent: "Lox", interpreter: Interpreter):
         self._interpreter: Final[Interpreter] = interpreter
-        self._scopes: Final[list[dict[str, bool]]] = []
+        self._scopes: Final[list[dict[Token, VariableTracker]]] = []
         self._agent: Final[Lox] = agent
         self._current_function: FunctionType = FunctionType.NONE
 
@@ -51,24 +49,23 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._scopes.append({})
 
     def _declare(self: "Resolver", name: Token) -> None:
-        if not self._scopes:
-            return
-        scope: dict[str, bool] = self._scopes[-1]
-        if scope.get(name.lexeme):
+        scope: dict[Token, VariableTracker] = self._scopes[-1]
+        if scope.get(name):
             self._agent.error_on_token(
                 name, "Already variable with this name in this scope."
             )
             return
-        scope[name.lexeme] = False
+        scope[name] = VariableTracker()
 
     def _define(self: "Resolver", name: Token) -> None:
-        if not self._scopes:
-            return
-        scope: dict[str, bool] = self._scopes[-1]
-        scope[name.lexeme] = True
+        scope: dict[Token, VariableTracker] = self._scopes[-1]
+        scope[name].initialized = True
 
     def _end_scope(self: "Resolver") -> None:
-        self._scopes.pop()
+        scope: dict[Token, VariableTracker] = self._scopes.pop()
+        for name, tracker in scope.items():
+            if tracker.occurence == 1:
+                self._agent.warn(name, f"Unused variable '{name.lexeme}'.")
 
     def _resolve_expr(self: "Resolver", expr: Optional[Expr]) -> None:
         if expr:
@@ -91,8 +88,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     def _resolve_local(self: "Resolver", expr: Expr, name: Token) -> None:
         for i, scope in enumerate(reversed(self._scopes)):
-            if name.lexeme in scope:
+            if name in scope:
+                scope[name].occurence += 1
                 self._interpreter.resolve(expr, i)
+                break
 
     def _resolve_stmt(self: "Resolver", stmt: Optional[Stmt]) -> None:
         if stmt:
@@ -146,10 +145,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve_expr(expr.right)
 
     def visit_variable_expr(self: "Resolver", expr: Variable) -> None:
-        if self._scopes and self._scopes[-1].get(expr.name.lexeme) is False:
+        tracker: Optional[VariableTracker] = self._scopes[-1].get(expr.name)
+        if tracker and tracker.initialized is False:
             self._agent.error_on_token(
                 expr.name,
-                "Uninitialized variable.",
+                "Cannot access before initialization.",
             )
 
         self._resolve_local(expr, expr.name)

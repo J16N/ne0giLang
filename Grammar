@@ -5,7 +5,7 @@ declaration   := classDecl
                | multiVarDecl 
                | statement ;
 classDecl     := "class" IDENTIFIER "{" funcExpr* "}" ;
-funcDecl      := "fun" funcExpr ;
+funcDecl      := "fn" funcExpr ;
 funcExpr	  := IDENTIFIER "(" parameters? ")" block ;
 parameters    := IDENTIFIER ( "," IDENTIFIER )* ;
 multiVarDecl  := "var" varDecl ( "," varDecl )* ";" ;
@@ -37,10 +37,10 @@ equality      := comparison ( ( "!=" | "==" ) comparison )* ;
 comparison    := term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term          := factor ( ( "-" | "+" ) factor )* ;
 factor        := unary ( ( "/" | "*" ) unary )* ;
-unary         := ( "!" | "-" | "+" ) unary
+unary         := ( "!" | "-" | "-- | "+" | "++" ) unary
                | call ;
 call		  := primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
-arguments     := expression ( "," expression )* ;
+arguments     := assignment ( "," assignment )* ;
 primary       := "true" | "false" | "nil" | "this"
                | NUMBER | STRING | 
                | "(" expression ")" 

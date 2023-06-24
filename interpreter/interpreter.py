@@ -5,10 +5,14 @@ from .environment import Environment
 from .exceptions import Break, Continue, Return, RuntimeError
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
-from .expr import Grouping, Literal, Logical, Ternary, Unary, Variable
+from .expr import Get, Grouping, Literal, Logical, Set, Ternary, This, Unary, Variable
 from .expr import Visitor as ExprVisitor
 from .function import Function
-from .stmt import Block, Expression, For
+from .instance import Instance
+from .klass import Class
+from .stmt import Block
+from .stmt import Class as ClassStmt
+from .stmt import Expression, For
 from .stmt import Function as FunctionStmt
 from .stmt import If, MultiVar
 from .stmt import Return as ReturnStmt
@@ -26,14 +30,22 @@ if TYPE_CHECKING:
 
 class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def __init__(self: "Interpreter", agent: "Lox", repl: bool = False):
-        self._agent: "Lox" = agent
-        self._repl: bool = repl
+        self._agent: Final["Lox"] = agent
+        self.repl: Final[bool] = repl
         self._print_called: bool = False
         self.globals: Final[Environment] = Environment()
         self._environment: Environment = self.globals
-        self._locals: dict[Expr, int] = {}
+        self._locals: Final[dict[Expr, int]] = {}
         self.globals.define("clock", Clock())
         self.globals.define("print", Print())
+
+    def _check_lvalue_operand(
+        self: "Interpreter", operator: Token, operand: object
+    ) -> None:
+        if isinstance(operand, Uninitialized):
+            raise RuntimeError(operator, "Cannot assign to uninitialized variable.")
+        if isinstance(operand, (Literal, Grouping)):
+            raise RuntimeError(operator, "Cannot assign to literal.")
 
     def _check_number_operands(
         self: "Interpreter", operator: Token, left: object, right: object
@@ -228,6 +240,13 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def visit_function_expr(self: "Interpreter", expr: FunctionExpr) -> object:
         return Function(None, expr, self._environment)
 
+    def visit_get_expr(self: "Interpreter", expr: Get) -> object:
+        obj: object = self._evaluate(expr.obj)
+        if isinstance(obj, Instance):
+            return obj.get(expr.name)
+
+        raise RuntimeError(expr.name, "Only instances have properties.")
+
     def visit_grouping_expr(self: "Interpreter", expr: Grouping) -> object:
         return self._evaluate(expr.expression)
 
@@ -246,6 +265,16 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
         return self._evaluate(expr.right)
 
+    def visit_set_expr(self: "Interpreter", expr: Set) -> object:
+        obj: object = self._evaluate(expr.obj)
+
+        if not isinstance(obj, Instance):
+            raise RuntimeError(expr.name, "Only instances have fields.")
+
+        value: object = self._evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
+
     def visit_ternary_expr(self: "Interpreter", expr: Ternary) -> object:
         condition: object = self._evaluate(expr.condition)
         return (
@@ -253,6 +282,9 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             if self._is_truthy(condition)
             else self._evaluate(expr.else_branch)
         )
+
+    def visit_this_expr(self: "Interpreter", expr: This) -> object:
+        return self._lookup_variable(expr.keyword, expr)
 
     def visit_unary_expr(self: "Interpreter", expr: Unary) -> object:
         right: object = self._evaluate(expr.right)
@@ -264,6 +296,16 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             case TokenType.MINUS:
                 self._check_number_operand(expr.operator, right)
                 return -cast(float, right)
+
+            case TokenType.PLUS:
+                self._check_number_operand(expr.operator, right)
+                return cast(float, right)
+
+            case TokenType.INCREMENT:
+                self._check_lvalue_operand(expr.operator, expr.right)
+
+            case TokenType.DECREMENT:
+                self._check_lvalue_operand(expr.operator, expr.right)
 
             case _:
                 ...
@@ -279,12 +321,27 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def visit_break_stmt(self: "Interpreter") -> None:
         raise Break()
 
+    def visit_class_stmt(self: "Interpreter", stmt: ClassStmt) -> None:
+        self._environment.define(stmt.name.lexeme, None)
+        methods: dict[str, Function] = {}
+        for method in stmt.methods:
+            function: Function = Function(
+                method.name.lexeme,
+                method.function,
+                self._environment,
+                method.name.lexeme == stmt.name.lexeme,
+            )
+            methods[method.name.lexeme] = function
+
+        klass: Class = Class(stmt.name.lexeme, methods)
+        self._environment.assign(stmt.name, klass)
+
     def visit_continue_stmt(self: "Interpreter") -> None:
         raise Continue()
 
     def visit_expression_stmt(self: "Interpreter", stmt: Expression) -> None:
         value: object = self._evaluate(stmt.expression)
-        if self._repl and not self._print_called:
+        if self.repl and not self._print_called:
             print(self.stringify(value))
         self._print_called = False
 

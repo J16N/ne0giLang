@@ -23,6 +23,12 @@ class Assign(Expr):
     def accept(self: "Assign", visitor: "Visitor[T]") -> T:
         return visitor.visit_assign_expr(self)
 
+    def __repr__(self: "Assign") -> str:
+        return f"Assign(name={self.name}, value={self.value})"
+
+    def __str__(self: "Assign") -> str:
+        return self.__repr__()
+
 
 class Binary(Expr):
     def __init__(self: "Binary", left: Expr, operator: Token, right: Expr):
@@ -32,6 +38,12 @@ class Binary(Expr):
 
     def accept(self: "Binary", visitor: "Visitor[T]") -> T:
         return visitor.visit_binary_expr(self)
+
+    def __repr__(self: "Binary") -> str:
+        return f"Binary(left={self.left}, operator={self.operator}, right={self.right})"
+
+    def __str__(self: "Binary") -> str:
+        return self.__repr__()
 
 
 class Call(Expr):
@@ -43,6 +55,12 @@ class Call(Expr):
     def accept(self: "Call", visitor: "Visitor[T]") -> T:
         return visitor.visit_call_expr(self)
 
+    def __repr__(self: "Call") -> str:
+        return f"Call(callee={self.callee}, arguments={self.arguments})"
+
+    def __str__(self: "Call") -> str:
+        return self.__repr__()
+
 
 class Comma(Expr):
     def __init__(self: "Comma", left: Expr, operator: Token, right: Expr):
@@ -53,6 +71,12 @@ class Comma(Expr):
     def accept(self: "Comma", visitor: "Visitor[T]") -> T:
         return visitor.visit_comma_expr(self)
 
+    def __repr__(self: "Comma") -> str:
+        return f"Comma(left={self.left}, operator={self.operator}, right={self.right})"
+
+    def __str__(self: "Comma") -> str:
+        return self.__repr__()
+
 
 class Function(Expr):
     def __init__(self: "Function", params: list[Token], body: list[Optional["Stmt"]]):
@@ -62,14 +86,26 @@ class Function(Expr):
     def accept(self: "Function", visitor: "Visitor[T]") -> T:
         return visitor.visit_function_expr(self)
 
+    def __repr__(self: "Function") -> str:
+        return f"FunctionExpr(params={self.params})"
 
-# class Get(Expr):
-#     def __init__(self: "Get", obj: Expr, name: Token):
-#         self.obj: Final[Expr] = obj
-#         self.name: Final[Token] = name
+    def __str__(self: "Function") -> str:
+        return self.__repr__()
 
-#     def accept(self: "Get", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_get_expr(self)
+
+class Get(Expr):
+    def __init__(self: "Get", obj: Expr, name: Token):
+        self.obj: Final[Expr] = obj
+        self.name: Final[Token] = name
+
+    def accept(self: "Get", visitor: "Visitor[T]") -> T:
+        return visitor.visit_get_expr(self)
+
+    def __repr__(self: "Get") -> str:
+        return f"Get(obj={self.obj}, name={self.name})"
+
+    def __str__(self: "Get") -> str:
+        return self.__repr__()
 
 
 class Grouping(Expr):
@@ -79,6 +115,12 @@ class Grouping(Expr):
     def accept(self: "Grouping", visitor: "Visitor[T]") -> T:
         return visitor.visit_grouping_expr(self)
 
+    def __repr__(self: "Grouping") -> str:
+        return f"Grouping(expression={self.expression})"
+
+    def __str__(self: "Grouping") -> str:
+        return self.__repr__()
+
 
 class Literal(Expr):
     def __init__(self: "Literal", value: object):
@@ -86,6 +128,12 @@ class Literal(Expr):
 
     def accept(self: "Literal", visitor: "Visitor[T]") -> T:
         return visitor.visit_literal_expr(self)
+
+    def __repr__(self: "Literal") -> str:
+        return f"Literal(value={self.value})"
+
+    def __str__(self: "Literal") -> str:
+        return self.__repr__()
 
 
 class Logical(Expr):
@@ -97,15 +145,29 @@ class Logical(Expr):
     def accept(self: "Logical", visitor: "Visitor[T]") -> T:
         return visitor.visit_logical_expr(self)
 
+    def __repr__(self: "Logical") -> str:
+        return (
+            f"Logical(left={self.left}, operator={self.operator}, right={self.right})"
+        )
 
-# class Set(Expr):
-#     def __init__(self: "Set", obj: Expr, name: Token, value: Expr):
-#         self.obj: Final[Expr] = obj
-#         self.name: Final[Token] = name
-#         self.value: Final[Expr] = value
+    def __str__(self: "Logical") -> str:
+        return self.__repr__()
 
-#     def accept(self: "Set", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_set_expr(self)
+
+class Set(Expr):
+    def __init__(self: "Set", obj: Expr, name: Token, value: Expr):
+        self.obj: Final[Expr] = obj
+        self.name: Final[Token] = name
+        self.value: Final[Expr] = value
+
+    def accept(self: "Set", visitor: "Visitor[T]") -> T:
+        return visitor.visit_set_expr(self)
+
+    def __repr__(self: "Set") -> str:
+        return f"Set(obj={self.obj}, name={self.name}, value={self.value})"
+
+    def __str__(self: "Set") -> str:
+        return self.__repr__()
 
 
 class Ternary(Expr):
@@ -119,13 +181,25 @@ class Ternary(Expr):
     def accept(self: "Ternary", visitor: "Visitor[T]") -> T:
         return visitor.visit_ternary_expr(self)
 
+    def __repr__(self: "Ternary") -> str:
+        return f"Ternary(condition={self.condition})"
 
-# class This(Expr):
-#     def __init__(self: "This", keyword: Token):
-#         self.keyword: Final[Token] = keyword
+    def __str__(self: "Ternary") -> str:
+        return self.__repr__()
 
-#     def accept(self: "This", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_this_expr(self)
+
+class This(Expr):
+    def __init__(self: "This", keyword: Token):
+        self.keyword: Final[Token] = keyword
+
+    def accept(self: "This", visitor: "Visitor[T]") -> T:
+        return visitor.visit_this_expr(self)
+
+    def __repr__(self: "This") -> str:
+        return f"This(keyword={self.keyword})"
+
+    def __str__(self: "This") -> str:
+        return self.__repr__()
 
 
 class Unary(Expr):
@@ -136,6 +210,12 @@ class Unary(Expr):
     def accept(self: "Unary", visitor: "Visitor[T]") -> T:
         return visitor.visit_unary_expr(self)
 
+    def __repr__(self: "Unary") -> str:
+        return f"Unary(operator={self.operator}, right={self.right})"
+
+    def __str__(self: "Unary") -> str:
+        return self.__repr__()
+
 
 class Variable(Expr):
     def __init__(self: "Variable", name: Token):
@@ -143,6 +223,12 @@ class Variable(Expr):
 
     def accept(self: "Variable", visitor: "Visitor[T]") -> T:
         return visitor.visit_variable_expr(self)
+
+    def __repr__(self: "Variable") -> str:
+        return f"Variable(name={self.name})"
+
+    def __str__(self: "Variable") -> str:
+        return self.__repr__()
 
 
 class Visitor(ABC, Generic[T]):
@@ -166,9 +252,9 @@ class Visitor(ABC, Generic[T]):
     def visit_function_expr(self: "Visitor[T]", expr: Function) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_get_expr(self: "Visitor[T]", expr: Get) -> T:
-    #     ...
+    @abstractmethod
+    def visit_get_expr(self: "Visitor[T]", expr: Get) -> T:
+        ...
 
     @abstractmethod
     def visit_grouping_expr(self: "Visitor[T]", expr: Grouping) -> T:
@@ -182,17 +268,17 @@ class Visitor(ABC, Generic[T]):
     def visit_logical_expr(self: "Visitor[T]", expr: Logical) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_set_expr(self: "Visitor[T]", expr: Set) -> T:
-    #     ...
+    @abstractmethod
+    def visit_set_expr(self: "Visitor[T]", expr: Set) -> T:
+        ...
 
     @abstractmethod
     def visit_ternary_expr(self: "Visitor[T]", expr: Ternary) -> T:
         ...
 
-    # @abstractmethod
-    # def visit_this_expr(self: "Visitor[T]", expr: This) -> T:
-    #     ...
+    @abstractmethod
+    def visit_this_expr(self: "Visitor[T]", expr: This) -> T:
+        ...
 
     @abstractmethod
     def visit_unary_expr(self: "Visitor[T]", expr: Unary) -> T:

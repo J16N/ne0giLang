@@ -21,24 +21,48 @@ class Block(Stmt):
     def accept(self: "Block", visitor: "Visitor[T]") -> T:
         return visitor.visit_block_stmt(self)
 
+    def __repr__(self: "Block") -> str:
+        return f"Block(statements={self.statements})"
+
+    def __str__(self: "Block") -> str:
+        return self.__repr__()
+
 
 class Break(Stmt):
     def accept(self: "Break", visitor: "Visitor[T]") -> T:
         return visitor.visit_break_stmt()
 
+    def __repr__(self: "Break") -> str:
+        return "Break()"
 
-# class Class(Stmt):
-#     def __init__(self: "Class", name: Token, methods: list["Function"]):
-#         self.name: Final[Token] = name
-#         self.methods: Final[list["Function"]] = methods
+    def __str__(self: "Break") -> str:
+        return self.__repr__()
 
-#     def accept(self: "Class", visitor: "Visitor[T]") -> T:
-#         return visitor.visit_class_stmt(self)
+
+class Class(Stmt):
+    def __init__(self: "Class", name: Token, methods: list["Function"]):
+        self.name: Final[Token] = name
+        self.methods: Final[list["Function"]] = methods
+
+    def accept(self: "Class", visitor: "Visitor[T]") -> T:
+        return visitor.visit_class_stmt(self)
+
+    def __repr__(self: "Class") -> str:
+        return f"ClassStmt(name={self.name}, methods={self.methods})"
+
+    def __str__(self: "Class") -> str:
+        return self.__repr__()
 
 
 class Continue(Stmt):
     def accept(self: "Continue", visitor: "Visitor[T]") -> T:
         return visitor.visit_continue_stmt()
+
+    def __repr__(self: "Continue") -> str:
+        return "Continue()"
+
+    def __str__(self: "Continue") -> str:
+        return self.__repr__()
 
 
 class Expression(Stmt):
@@ -47,6 +71,12 @@ class Expression(Stmt):
 
     def accept(self: "Expression", visitor: "Visitor[T]") -> T:
         return visitor.visit_expression_stmt(self)
+
+    def __repr__(self: "Expression") -> str:
+        return f"ExpressionStmt(expression={self.expression})"
+
+    def __str__(self: "Expression") -> str:
+        return self.__repr__()
 
 
 class For(Stmt):
@@ -65,6 +95,12 @@ class For(Stmt):
     def accept(self: "For", visitor: "Visitor[T]") -> T:
         return visitor.visit_for_stmt(self)
 
+    def __repr__(self: "For") -> str:
+        return f"ForStmt(initializer={self.initializer}, condition={self.condition}, increment={self.increment})"
+
+    def __str__(self: "For") -> str:
+        return self.__repr__()
+
 
 class Function(Stmt):
     def __init__(self: "Function", name: Token, function: FunctionExpr):
@@ -73,6 +109,12 @@ class Function(Stmt):
 
     def accept(self: "Function", visitor: "Visitor[T]") -> T:
         return visitor.visit_function_stmt(self)
+
+    def __repr__(self: "Function") -> str:
+        return f"FunctionStmt(name={self.name}, function={self.function})"
+
+    def __str__(self: "Function") -> str:
+        return self.__repr__()
 
 
 class If(Stmt):
@@ -89,6 +131,12 @@ class If(Stmt):
     def accept(self: "If", visitor: "Visitor[T]") -> T:
         return visitor.visit_if_stmt(self)
 
+    def __repr__(self: "If") -> str:
+        return f"IfStmt(condition={self.condition})"
+
+    def __str__(self: "If") -> str:
+        return self.__repr__()
+
 
 class Return(Stmt):
     def __init__(self: "Return", keyword: Token, value: Optional[Expr]):
@@ -97,6 +145,12 @@ class Return(Stmt):
 
     def accept(self: "Return", visitor: "Visitor[T]") -> T:
         return visitor.visit_return_stmt(self)
+
+    def __repr__(self: "Return") -> str:
+        return f"ReturnStmt(keyword={self.keyword}, value={self.value})"
+
+    def __str__(self: "Return") -> str:
+        return self.__repr__()
 
 
 class MultiVar(Stmt):
@@ -109,6 +163,12 @@ class MultiVar(Stmt):
     def accept(self: "MultiVar", visitor: "Visitor[T]") -> T:
         return visitor.visit_multi_var_stmt(self)
 
+    def __repr__(self: "MultiVar") -> str:
+        return f"MultiVarStmt(variables={self.variables})"
+
+    def __str__(self: "MultiVar") -> str:
+        return self.__repr__()
+
 
 class Var(Stmt):
     def __init__(self: "Var", name: Token, initializer: Optional[Expr]):
@@ -118,6 +178,12 @@ class Var(Stmt):
     def accept(self: "Var", visitor: "Visitor[T]") -> T:
         return visitor.visit_var_stmt(self)
 
+    def __repr__(self: "Var") -> str:
+        return f"VarStmt(name={self.name}, initializer={self.initializer})"
+
+    def __str__(self: "Var") -> str:
+        return self.__repr__()
+
 
 class While(Stmt):
     def __init__(self: "While", condition: Expr, body: Optional[Stmt]):
@@ -126,6 +192,12 @@ class While(Stmt):
 
     def accept(self: "While", visitor: "Visitor[T]") -> T:
         return visitor.visit_while_stmt(self)
+
+    def __repr__(self: "While") -> str:
+        return f"WhileStmt(condition={self.condition})"
+
+    def __str__(self: "While") -> str:
+        return self.__repr__()
 
 
 class Visitor(ABC, Generic[T]):
@@ -137,9 +209,9 @@ class Visitor(ABC, Generic[T]):
     def visit_break_stmt(self: "Visitor[T]") -> T:
         ...
 
-    # @abstractmethod
-    # def visit_class_stmt(self: "Visitor[T]", stmt: Class) -> T:
-    #     ...
+    @abstractmethod
+    def visit_class_stmt(self: "Visitor[T]", stmt: Class) -> T:
+        ...
 
     @abstractmethod
     def visit_continue_stmt(self: "Visitor[T]") -> T:

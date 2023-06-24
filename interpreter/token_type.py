@@ -43,6 +43,8 @@ class TokenType(Enum):
 
     # Keywords
     AND = "&&"
+    BIT_AND = "&"
+    BIT_OR = "|"
     BREAK = "break"
     CLASS = "class"
     CONTINUE = "continue"

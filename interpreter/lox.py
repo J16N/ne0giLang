@@ -74,7 +74,9 @@ class Lox:
         if cls.had_error:
             return
 
-        resolver: Resolver = Resolver(cast(Lox, cls), cls._interpreter)
+        resolver: Resolver = Resolver(
+            cast(Lox, cls), cls._interpreter, cls._interpreter.repl
+        )
         resolver.resolve(statements)
 
         # Stop if there was a resolution error.

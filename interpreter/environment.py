@@ -22,7 +22,7 @@ class Environment:
 
     def assign(self: "Environment", name: Token, value: object) -> None:
         if name.lexeme in self._values:
-            self._values[name.lexeme] = value
+            self.define(name.lexeme, value)
             return
 
         if self._enclosing:

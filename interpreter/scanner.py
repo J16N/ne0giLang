@@ -9,7 +9,6 @@ if TYPE_CHECKING:
 
 class Scanner:
     keywords: ClassVar[Mapping[str, TokenType]] = {
-        "and": TokenType.AND,
         "break": TokenType.BREAK,
         "class": TokenType.CLASS,
         "continue": TokenType.CONTINUE,
@@ -19,7 +18,6 @@ class Scanner:
         "fn": TokenType.FN,
         "if": TokenType.IF,
         "nil": TokenType.NIL,
-        "or": TokenType.OR,
         "return": TokenType.RETURN,
         "super": TokenType.SUPER,
         "this": TokenType.THIS,
@@ -63,9 +61,13 @@ class Scanner:
             case ".":
                 self._add_token(TokenType.DOT)
             case "-":
-                self._add_token(TokenType.MINUS)
+                self._add_token(
+                    TokenType.DECREMENT if self._match("-") else TokenType.MINUS
+                )
             case "+":
-                self._add_token(TokenType.PLUS)
+                self._add_token(
+                    TokenType.INCREMENT if self._match("+") else TokenType.PLUS
+                )
             case ";":
                 self._add_token(TokenType.SEMICOLON)
             case "*":
@@ -115,6 +117,14 @@ class Scanner:
 
             case '"':
                 self._string()
+
+            case "&":
+                self._add_token(
+                    TokenType.AND if self._match("&") else TokenType.BIT_AND
+                )
+
+            case "|":
+                self._add_token(TokenType.OR if self._match("|") else TokenType.BIT_OR)
 
             case _:
                 if self._is_digit(c):

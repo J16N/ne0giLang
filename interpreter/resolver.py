@@ -3,10 +3,12 @@ from typing import TYPE_CHECKING, Final, Optional
 
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
-from .expr import Grouping, Literal, Logical, Ternary, Unary, Variable
+from .expr import Get, Grouping, Literal, Logical, Set, Ternary, This, Unary, Variable
 from .expr import Visitor as ExprVisitor
 from .interpreter import Interpreter
-from .stmt import Block, Expression, For
+from .stmt import Block
+from .stmt import Class as ClassStmt
+from .stmt import Expression, For
 from .stmt import Function as FunctionStmt
 from .stmt import If, MultiVar
 from .stmt import Return as ReturnStmt
@@ -14,6 +16,7 @@ from .stmt import Stmt, Var
 from .stmt import Visitor as StmtVisitor
 from .stmt import While
 from .token import Token
+from .token_type import TokenType
 
 if TYPE_CHECKING:
     from .lox import Lox
@@ -22,6 +25,13 @@ if TYPE_CHECKING:
 class FunctionType(Enum):
     NONE = "none"
     FUNCTION = "function"
+    INITIALIZER = "initializer"
+    METHOD = "method"
+
+
+class ClassType(Enum):
+    NONE = "none"
+    CLASS = "class"
 
 
 class VariableTracker:
@@ -39,11 +49,15 @@ class VariableTracker:
 
 
 class Resolver(ExprVisitor[None], StmtVisitor[None]):
-    def __init__(self: "Resolver", agent: "Lox", interpreter: Interpreter):
+    def __init__(
+        self: "Resolver", agent: "Lox", interpreter: Interpreter, repl: bool = False
+    ):
         self._interpreter: Final[Interpreter] = interpreter
         self._scopes: Final[list[dict[Token, VariableTracker]]] = []
         self._agent: Final[Lox] = agent
         self._current_function: FunctionType = FunctionType.NONE
+        self._current_class: ClassType = ClassType.NONE
+        self.repl = repl
 
     def _begin_scope(self: "Resolver") -> None:
         self._scopes.append({})
@@ -63,6 +77,8 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     def _end_scope(self: "Resolver") -> None:
         scope: dict[Token, VariableTracker] = self._scopes.pop()
+        if self.repl:
+            return
         for name, tracker in scope.items():
             if tracker.occurence == 1:
                 self._agent.warn(name, f"Unused variable '{name.lexeme}'.")
@@ -126,6 +142,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def visit_function_expr(self: "Resolver", expr: FunctionExpr) -> None:
         self._resolve_function(expr, FunctionType.FUNCTION)
 
+    def visit_get_expr(self: "Resolver", expr: "Get") -> None:
+        self._resolve_expr(expr.obj)
+
     def visit_grouping_expr(self: "Resolver", expr: Grouping) -> None:
         self._resolve_expr(expr.expression)
 
@@ -136,10 +155,22 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve_expr(expr.left)
         self._resolve_expr(expr.right)
 
+    def visit_set_expr(self: "Resolver", expr: "Set") -> None:
+        self._resolve_expr(expr.value)
+        self._resolve_expr(expr.obj)
+
     def visit_ternary_expr(self: "Resolver", expr: Ternary) -> None:
         self._resolve_expr(expr.condition)
         self._resolve_expr(expr.then_branch)
         self._resolve_expr(expr.else_branch)
+
+    def visit_this_expr(self: "Resolver", expr: "This") -> None:
+        if self._current_class == ClassType.NONE:
+            self._agent.error_on_token(
+                expr.keyword, f"Cannot use '{expr.keyword.lexeme}' outside class."
+            )
+
+        self._resolve_local(expr, expr.keyword)
 
     def visit_unary_expr(self: "Resolver", expr: Unary) -> None:
         self._resolve_expr(expr.right)
@@ -161,6 +192,29 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     def visit_break_stmt(self: "Resolver") -> None:
         return
+
+    def visit_class_stmt(self: "Resolver", stmt: ClassStmt) -> None:
+        enclosing_class: ClassType = self._current_class
+        self._current_class = ClassType.CLASS
+
+        self._declare(stmt.name)
+        self._define(stmt.name)
+
+        self._begin_scope()
+        self._scopes[-1][
+            Token(TokenType.THIS, "this", None, stmt.name.line + 1)
+        ] = VariableTracker(True)
+
+        for method in stmt.methods:
+            declaration: FunctionType = FunctionType.METHOD
+
+            if method.name.lexeme == stmt.name.lexeme:
+                declaration = FunctionType.INITIALIZER
+
+            self._resolve_function(method.function, declaration)
+
+        self._end_scope()
+        self._current_class = enclosing_class
 
     def visit_continue_stmt(self: "Resolver") -> None:
         return
@@ -194,6 +248,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             )
 
         if stmt.value:
+            if self._current_function == FunctionType.INITIALIZER:
+                self._agent.error_on_token(
+                    stmt.keyword, "Cannot return a value from an initializer."
+                )
+
             self._resolve_expr(stmt.value)
 
     def visit_var_stmt(self: "Resolver", stmt: Var) -> None:

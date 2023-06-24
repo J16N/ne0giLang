@@ -2,8 +2,10 @@ from typing import TYPE_CHECKING, Final, Optional
 
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
-from .expr import Grouping, Literal, Logical, Ternary, Unary, Variable
-from .stmt import Block, Break, Continue, Expression, For
+from .expr import Get, Grouping, Literal, Logical, Set, Ternary, This, Unary, Variable
+from .stmt import Block, Break
+from .stmt import Class as ClassStmt
+from .stmt import Continue, Expression, For
 from .stmt import Function as FunctionStmt
 from .stmt import If, MultiVar, Return, Stmt, Var, While
 from .token import Token
@@ -21,7 +23,7 @@ class Parser:
     def __init__(self: "Parser", tokens: list[Token], agent: "Lox"):
         self._tokens: Final[list[Token]] = tokens
         self._current: int = 0
-        self._agent = agent
+        self._agent: Final["Lox"] = agent
         self._loop_depth: int = 0
 
     def parse(self: "Parser") -> list[Optional[Stmt]]:
@@ -34,12 +36,55 @@ class Parser:
 
     def _declaration(self: "Parser") -> Optional[Stmt]:
         try:
+            if self._match(TokenType.CLASS):
+                return self._class()
+
+            if self._match(TokenType.FN):
+                return self._function("function")
+
             if self._match(TokenType.VAR):
                 return self._multi_var_declaration()
+
             return self._statement()
 
         except ParseError:
             self._synchronize()
+
+    def _class(self: "Parser") -> ClassStmt:
+        name: Token = self._consume(TokenType.IDENTIFIER, "Expected class name.")
+        self._consume(TokenType.LEFT_BRACE, "Expected '{' before class body.")
+
+        methods: list[FunctionStmt] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            methods.append(self._function("method"))
+
+        self._consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.")
+        return ClassStmt(name, methods)
+
+    def _function(self: "Parser", kind: str) -> FunctionStmt:
+        name: Token = self._consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
+        return FunctionStmt(name, self._function_body(kind))
+
+    def _function_body(self: "Parser", kind: str) -> FunctionExpr:
+        self._consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind}.")
+        parameters: list[Token] = []
+
+        if not self._check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(parameters) >= 255:
+                    self._error(self._peek(), "Cannot have more than 255 parameters.")
+
+                parameters.append(
+                    self._consume(TokenType.IDENTIFIER, "Expected parameter name.")
+                )
+
+                if not self._match(TokenType.COMMA):
+                    break
+
+        self._consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.")
+        self._consume(TokenType.LEFT_BRACE, f"Expected '{{' before {kind} body.")
+        body: list[Optional[Stmt]] = self._block()
+        return FunctionExpr(parameters, body)
 
     def _multi_var_declaration(self: "Parser") -> Stmt:
         multi_var: MultiVar = MultiVar()
@@ -69,9 +114,6 @@ class Parser:
 
         if self._match(TokenType.FOR):
             return self._for_statement()
-
-        if self._match(TokenType.FN):
-            return self._function("function")
 
         if self._match(TokenType.IF):
             return self._if_statement()
@@ -127,31 +169,6 @@ class Parser:
 
         finally:
             self._loop_depth -= 1
-
-    def _function(self: "Parser", kind: str) -> Stmt:
-        name: Token = self._consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
-        return FunctionStmt(name, self._function_body(kind))
-
-    def _function_body(self: "Parser", kind: str) -> FunctionExpr:
-        self._consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind}.")
-        parameters: list[Token] = []
-
-        if not self._check(TokenType.RIGHT_PAREN):
-            while True:
-                if len(parameters) >= 255:
-                    self._error(self._peek(), "Cannot have more than 255 parameters.")
-
-                parameters.append(
-                    self._consume(TokenType.IDENTIFIER, "Expected parameter name.")
-                )
-
-                if not self._match(TokenType.COMMA):
-                    break
-
-        self._consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.")
-        self._consume(TokenType.LEFT_BRACE, f"Expected '{{' before {kind} body.")
-        body: list[Optional[Stmt]] = self._block()
-        return FunctionExpr(parameters, body)
 
     def _if_statement(self: "Parser") -> Stmt:
         self._consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.")
@@ -224,6 +241,9 @@ class Parser:
             if isinstance(expr, Variable):
                 name: Token = expr.name
                 return Assign(name, value)
+
+            elif isinstance(expr, Get):
+                return Set(expr.obj, expr.name, value)
 
             self._error(equals, "Invalid assignment target.")
 
@@ -306,7 +326,13 @@ class Parser:
         return expr
 
     def _unary(self: "Parser") -> Expr:
-        if self._match(TokenType.BANG, TokenType.MINUS):
+        if self._match(
+            TokenType.BANG,
+            TokenType.MINUS,
+            TokenType.PLUS,
+            TokenType.INCREMENT,
+            TokenType.DECREMENT,
+        ):
             operator: Token = self._previous()
             right: Expr = self._unary()
             return Unary(operator, right)
@@ -317,9 +343,17 @@ class Parser:
         expr: Expr = self._primary()
 
         while True:
-            if not self._match(TokenType.LEFT_PAREN):
+            if self._match(TokenType.LEFT_PAREN):
+                expr = self._finish_call(expr)
+
+            elif self._match(TokenType.DOT):
+                name: Token = self._consume(
+                    TokenType.IDENTIFIER, "Expected property name."
+                )
+                expr = Get(expr, name)
+
+            else:
                 break
-            expr = self._finish_call(expr)
 
         return expr
 
@@ -329,7 +363,7 @@ class Parser:
             while True:
                 if len(arguments) >= 255:
                     self._error(self._peek(), "Cannot have more than 255 arguments.")
-                arguments.append(self._expression())
+                arguments.append(self._assignment())
                 if not self._match(TokenType.COMMA):
                     break
 
@@ -358,6 +392,9 @@ class Parser:
 
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self._previous().literal)
+
+        if self._match(TokenType.THIS):
+            return This(self._previous())
 
         if self._match(TokenType.TRUE):
             return Literal(True)

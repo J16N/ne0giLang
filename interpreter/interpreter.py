@@ -50,14 +50,14 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def _check_number_operands(
         self: "Interpreter", operator: Token, left: object, right: object
     ) -> None:
-        if isinstance(left, float) and isinstance(right, float):
+        if isinstance(left, (float, int)) and isinstance(right, (float, int)):
             return
         raise RuntimeError(operator, "Operands must be numbers.")
 
     def _check_number_operand(
         self: "Interpreter", operator: Token, operand: object
     ) -> None:
-        if isinstance(operand, float):
+        if isinstance(operand, (float, int)):
             return
         raise RuntimeError(operator, "Operand must be a number.")
 
@@ -108,9 +108,6 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def stringify(self: "Interpreter", obj: object) -> str:
         if obj is None:
             return "nil"
-
-        if isinstance(obj, float):
-            return f"{obj:g}"
 
         if isinstance(obj, bool):
             return str(obj).lower()
@@ -186,10 +183,17 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
             case TokenType.MINUS:
                 self._check_number_operands(expr.operator, left, right)
-                return cast(float, left) - cast(float, right)
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) - int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
+                    return float(left) - float(right)
 
             case TokenType.PLUS:
-                if isinstance(left, float) and isinstance(right, float):
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) + int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) + float(right)
 
                 if isinstance(left, str) and isinstance(right, str):
@@ -201,7 +205,11 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
             case TokenType.POWER:
                 self._check_number_operands(expr.operator, left, right)
-                return cast(float, left) ** cast(float, right)
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) + int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
+                    return float(left) + float(right)
 
             case TokenType.SLASH:
                 self._check_number_operands(expr.operator, left, right)
@@ -211,7 +219,11 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
             case TokenType.STAR:
                 self._check_number_operands(expr.operator, left, right)
-                return cast(float, left) * cast(float, right)
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) * int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
+                    return float(left) * float(right)
 
             case _:
                 ...

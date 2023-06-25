@@ -183,16 +183,20 @@ class Scanner:
             self._advance()
 
         # Look for a fractional part.
-        if self._peek() == "." and self._is_digit(self._peek_next()):
+        if self._peek() == ".":
             # Consume the "."
             self._advance()
 
             while self._is_digit(self._peek()):
                 self._advance()
 
-        self._add_token(
-            TokenType.NUMBER, float(self._source[self._start : self._current])
-        )
+            self._add_token(
+                TokenType.NUMBER, float(self._source[self._start : self._current])
+            )
+        else:
+            self._add_token(
+                TokenType.NUMBER, int(self._source[self._start : self._current])
+            )
 
     def _peek_next(self: "Scanner") -> str:
         if self._current + 1 >= len(self._source):

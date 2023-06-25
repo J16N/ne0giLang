@@ -44,7 +44,7 @@ factor        := unary ( ( "/" | "*" | "%" ) unary )* ;
 unary         := ( "!" | "-" | "-- | "+" | "++" | "~" ) unary
                | exponent ;
 exponent      := call ( "**" call )* ;
-call		  := primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+call		  := primary ( "(" arguments? ")" | "." IDENTIFIER )* ( "++" | "--" )? ;
 arguments     := assignment ( "," assignment )* ;
 primary       := "true" | "false" | "nil" | "this"
                | NUMBER | STRING | 

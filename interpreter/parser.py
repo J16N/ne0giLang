@@ -420,6 +420,10 @@ class Parser:
             else:
                 break
 
+        if self._match(TokenType.INCREMENT, TokenType.DECREMENT):
+            operator: Token = self._previous()
+            expr = UArithmeticOp(operator, expr, False)
+
         return expr
 
     def _finish_call(self: "Parser", callee: Expr) -> Expr:

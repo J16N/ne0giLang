@@ -353,7 +353,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         if not isinstance(value, (float, int)):
             raise RuntimeError(expr.operator, "Can only increment numbers.")
 
-        temp: object = Literal(value)
+        temp: object = value
         value = value + 1 if expr.operator.type == TokenType.INCREMENT else value - 1
         if expr.is_prefix:
             temp = value

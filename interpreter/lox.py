@@ -104,7 +104,7 @@ class Lox:
 
     @classmethod
     def runtime_error(cls, error: RuntimeError) -> None:
-        print(f"[line {error.token.line}] At {error.token.lexeme}: {error.message}")
+        print(f"[line {error.token.line}] At '{error.token.lexeme}': {error.message}")
         cls.had_runtime_error = True
 
     @classmethod

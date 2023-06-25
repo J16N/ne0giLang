@@ -2,7 +2,18 @@ from typing import TYPE_CHECKING, Final, Optional
 
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
-from .expr import Get, Grouping, Literal, Logical, Set, Ternary, This, Unary, Variable
+from .expr import (
+    Get,
+    Grouping,
+    Literal,
+    Logical,
+    Set,
+    Ternary,
+    This,
+    UArithmeticOp,
+    Unary,
+    Variable,
+)
 from .stmt import Block, Break
 from .stmt import Class as ClassStmt
 from .stmt import Continue, Expression, For
@@ -376,6 +387,9 @@ class Parser:
         ):
             operator: Token = self._previous()
             right: Expr = self._unary()
+            if operator.type in (TokenType.INCREMENT, TokenType.DECREMENT):
+                return UArithmeticOp(operator, right)
+
             return Unary(operator, right)
 
         return self._exponent()

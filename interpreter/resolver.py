@@ -3,7 +3,18 @@ from typing import TYPE_CHECKING, Final, Optional
 
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
-from .expr import Get, Grouping, Literal, Logical, Set, Ternary, This, Unary, Variable
+from .expr import (
+    Get,
+    Grouping,
+    Literal,
+    Logical,
+    Set,
+    Ternary,
+    This,
+    UArithmeticOp,
+    Unary,
+    Variable,
+)
 from .expr import Visitor as ExprVisitor
 from .interpreter import Interpreter
 from .stmt import Block
@@ -171,6 +182,14 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             )
 
         self._resolve_local(expr, expr.keyword)
+
+    def visit_uarithmeticop_expr(self: "Resolver", expr: UArithmeticOp) -> None:
+        if isinstance(expr.expression, (Get, Variable)):
+            self._resolve_expr(expr.expression)
+            return
+
+        name: str = "increment" if expr.operator.type.value == "++" else "decrement"
+        self._agent.error_on_token(expr.operator, f"Invalid {name} expression.")
 
     def visit_unary_expr(self: "Resolver", expr: Unary) -> None:
         self._resolve_expr(expr.right)

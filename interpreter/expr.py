@@ -202,6 +202,24 @@ class This(Expr):
         return self.__repr__()
 
 
+class UArithmeticOp(Expr):
+    def __init__(
+        self: "UArithmeticOp", operator: Token, expression: Expr, is_prefix: bool = True
+    ):
+        self.operator: Final[Token] = operator
+        self.expression: Final[Expr] = expression
+        self.is_prefix: Final[bool] = is_prefix
+
+    def accept(self: "UArithmeticOp", visitor: "Visitor[T]") -> T:
+        return visitor.visit_uarithmeticop_expr(self)
+
+    def __repr__(self: "UArithmeticOp") -> str:
+        return f"UArithmeticOp(operator={self.operator}, expression={self.expression})"
+
+    def __str__(self: "UArithmeticOp") -> str:
+        return self.__repr__()
+
+
 class Unary(Expr):
     def __init__(self: "Unary", operator: Token, right: Expr):
         self.operator: Final[Token] = operator
@@ -278,6 +296,10 @@ class Visitor(ABC, Generic[T]):
 
     @abstractmethod
     def visit_this_expr(self: "Visitor[T]", expr: This) -> T:
+        ...
+
+    @abstractmethod
+    def visit_uarithmeticop_expr(self: "Visitor[T]", expr: UArithmeticOp) -> T:
         ...
 
     @abstractmethod

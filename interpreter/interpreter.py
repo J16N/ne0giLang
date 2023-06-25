@@ -5,7 +5,18 @@ from .environment import Environment
 from .exceptions import Break, Continue, Return, RuntimeError
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
-from .expr import Get, Grouping, Literal, Logical, Set, Ternary, This, Unary, Variable
+from .expr import (
+    Get,
+    Grouping,
+    Literal,
+    Logical,
+    Set,
+    Ternary,
+    This,
+    UArithmeticOp,
+    Unary,
+    Variable,
+)
 from .expr import Visitor as ExprVisitor
 from .function import Function
 from .instance import Instance
@@ -38,14 +49,6 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         self._locals: Final[dict[Expr, int]] = {}
         self.globals.define("clock", Clock())
         self.globals.define("print", Print())
-
-    def _check_lvalue_operand(
-        self: "Interpreter", operator: Token, operand: object
-    ) -> None:
-        if isinstance(operand, Uninitialized):
-            raise RuntimeError(operator, "Cannot assign to uninitialized variable.")
-        if isinstance(operand, (Literal, Grouping)):
-            raise RuntimeError(operator, "Cannot assign to literal.")
 
     def _check_number_operands(
         self: "Interpreter", operator: Token, left: object, right: object
@@ -340,6 +343,30 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def visit_this_expr(self: "Interpreter", expr: This) -> object:
         return self._lookup_variable(expr.keyword, expr)
 
+    def visit_uarithmeticop_expr(self: "Interpreter", expr: UArithmeticOp) -> object:
+        if not isinstance(expr.expression, (Get, Variable)):
+            raise RuntimeError(
+                expr.operator, "Bad operand type for increment operator."
+            )
+
+        value: object = self._evaluate(expr.expression)
+        if not isinstance(value, (float, int)):
+            raise RuntimeError(expr.operator, "Can only increment numbers.")
+
+        temp: object = Literal(value)
+        value = value + 1 if expr.operator.type == TokenType.INCREMENT else value - 1
+        if expr.is_prefix:
+            temp = value
+
+        if isinstance(expr.expression, Get):
+            self.visit_set_expr(
+                Set(expr.expression.obj, expr.expression.name, Literal(value))
+            )
+        else:
+            self.visit_assign_expr(Assign(expr.expression.name, Literal(value)))
+
+        return temp
+
     def visit_unary_expr(self: "Interpreter", expr: Unary) -> object:
         right: object = self._evaluate(expr.right)
 
@@ -360,12 +387,6 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             case TokenType.PLUS:
                 self._check_number_operand(expr.operator, right)
                 return cast(float, right)
-
-            case TokenType.INCREMENT:
-                self._check_lvalue_operand(expr.operator, expr.right)
-
-            case TokenType.DECREMENT:
-                self._check_lvalue_operand(expr.operator, expr.right)
 
             case _:
                 ...

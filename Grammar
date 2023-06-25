@@ -34,7 +34,11 @@ ternary       := logical_or "?" assignment ":" assignment
 logic_or      := logic_and ( "or" logic_and )* ;
 logic_and     := equality ( "and" equality )* ;
 equality      := comparison ( ( "!=" | "==" ) comparison )* ;
-comparison    := term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+comparison    := bit_or ( ( ">" | ">=" | "<" | "<=" ) bit_or )* ;
+bit_or        := bit_xor ( "|" bit_xor )* ;
+bit_xor       := bit_and ( "^" bit_and )* ;
+bit_and       := bit_shift ( "&" bit_shift )* ;
+bit_shift     := term ( ( "<<" | ">>" ) term )* ;
 term          := factor ( ( "-" | "+" ) factor )* ;
 factor        := unary ( ( "/" | "*" | "%" ) unary )* ;
 unary         := ( "!" | "-" | "-- | "+" | "++" | "~" ) unary

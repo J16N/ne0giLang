@@ -36,10 +36,10 @@ logic_and     := equality ( "and" equality )* ;
 equality      := comparison ( ( "!=" | "==" ) comparison )* ;
 comparison    := term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term          := factor ( ( "-" | "+" ) factor )* ;
-factor        := exponent ( ( "/" | "*" ) exponent )* ;
-exponent      := unary ( "**" unary )* ;
+factor        := unary ( ( "/" | "*" ) unary )* ;
 unary         := ( "!" | "-" | "-- | "+" | "++" ) unary
-               | call ;
+               | exponent ;
+exponent      := call ( "**" call )* ;
 call		  := primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 arguments     := assignment ( "," assignment )* ;
 primary       := "true" | "false" | "nil" | "this"

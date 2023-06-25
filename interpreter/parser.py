@@ -264,9 +264,9 @@ class Parser:
         expr: Expr = self._or()
 
         while self._match(TokenType.QUESTION):
-            then_branch: Expr = self._assignment()
+            then_branch: Expr = self._ternary()
             self._consume(TokenType.COLON, "Expected ':' after expression.")
-            else_branch: Expr = self._assignment()
+            else_branch: Expr = self._ternary()
             expr = Ternary(expr, then_branch, else_branch)
 
         return expr

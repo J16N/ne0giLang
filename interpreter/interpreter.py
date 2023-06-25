@@ -134,6 +134,36 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             case TokenType.BANG_EQUAL:
                 return not self._is_equal(left, right)
 
+            case TokenType.BIT_AND:
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) & int(right)
+
+                raise RuntimeError(expr.operator, "Operands must be two integers.")
+
+            case TokenType.BIT_LSHIFT:
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) << int(right)
+
+                raise RuntimeError(expr.operator, "Operands must be two integers.")
+
+            case TokenType.BIT_OR:
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) | int(right)
+
+                raise RuntimeError(expr.operator, "Operands must be two integers.")
+
+            case TokenType.BIT_RSHIFT:
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) >> int(right)
+
+                raise RuntimeError(expr.operator, "Operands must be two integers.")
+
+            case TokenType.BIT_XOR:
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) ^ int(right)
+
+                raise RuntimeError(expr.operator, "Operands must be two integers.")
+
             case TokenType.EQUAL_EQUAL:
                 return self._is_equal(left, right)
 

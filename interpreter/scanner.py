@@ -88,14 +88,24 @@ class Scanner:
                 )
 
             case "<":
-                self._add_token(
-                    TokenType.LESS_EQUAL if self._match("=") else TokenType.LESS
-                )
+                if self._match("<"):
+                    self._add_token(TokenType.BIT_LSHIFT)
+
+                elif self._match("="):
+                    self._add_token(TokenType.LESS_EQUAL)
+
+                else:
+                    self._add_token(TokenType.LESS)
 
             case ">":
-                self._add_token(
-                    TokenType.GREATER_EQUAL if self._match("=") else TokenType.GREATER
-                )
+                if self._match("="):
+                    self._add_token(TokenType.GREATER_EQUAL)
+
+                elif self._match(">"):
+                    self._add_token(TokenType.BIT_RSHIFT)
+
+                else:
+                    self._add_token(TokenType.GREATER)
 
             case "/" if self._match("/"):
                 # A comment goes until the end of the line.
@@ -131,6 +141,9 @@ class Scanner:
 
             case "%":
                 self._add_token(TokenType.MODULO)
+
+            case "^":
+                self._add_token(TokenType.BIT_XOR)
 
             case _:
                 if self._is_digit(c):

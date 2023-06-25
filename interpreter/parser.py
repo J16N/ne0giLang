@@ -291,7 +291,7 @@ class Parser:
         return expr
 
     def _comparison(self: "Parser") -> Expr:
-        expr: Expr = self._term()
+        expr: Expr = self._bit_or()
 
         while self._match(
             TokenType.GREATER,
@@ -299,6 +299,46 @@ class Parser:
             TokenType.LESS,
             TokenType.LESS_EQUAL,
         ):
+            operator: Token = self._previous()
+            right: Expr = self._bit_or()
+            expr = Binary(expr, operator, right)
+
+        return expr
+
+    def _bit_or(self: "Parser") -> Expr:
+        expr: Expr = self._bit_xor()
+
+        while self._match(TokenType.BIT_OR):
+            operator: Token = self._previous()
+            right: Expr = self._bit_xor()
+            expr = Binary(expr, operator, right)
+
+        return expr
+
+    def _bit_xor(self: "Parser") -> Expr:
+        expr: Expr = self._bit_and()
+
+        while self._match(TokenType.BIT_XOR):
+            operator: Token = self._previous()
+            right: Expr = self._bit_and()
+            expr = Binary(expr, operator, right)
+
+        return expr
+
+    def _bit_and(self: "Parser") -> Expr:
+        expr: Expr = self._bit_shift()
+
+        while self._match(TokenType.BIT_AND):
+            operator: Token = self._previous()
+            right: Expr = self._bit_shift()
+            expr = Binary(expr, operator, right)
+
+        return expr
+
+    def _bit_shift(self: "Parser") -> Expr:
+        expr: Expr = self._term()
+
+        while self._match(TokenType.BIT_LSHIFT, TokenType.BIT_RSHIFT):
             operator: Token = self._previous()
             right: Expr = self._term()
             expr = Binary(expr, operator, right)

@@ -171,7 +171,10 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 return self._is_equal(left, right)
 
             case TokenType.GREATER:
-                if isinstance(left, float) and isinstance(right, float):
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) > int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) > float(right)
 
                 if isinstance(left, str) and isinstance(right, str):
@@ -182,7 +185,10 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 )
 
             case TokenType.GREATER_EQUAL:
-                if isinstance(left, float) and isinstance(right, float):
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) >= int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) >= float(right)
 
                 if isinstance(left, str) and isinstance(right, str):
@@ -193,7 +199,10 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 )
 
             case TokenType.LESS:
-                if isinstance(left, float) and isinstance(right, float):
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) < int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) < float(right)
 
                 if isinstance(left, str) and isinstance(right, str):
@@ -204,7 +213,10 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 )
 
             case TokenType.LESS_EQUAL:
-                if isinstance(left, float) and isinstance(right, float):
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) <= int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) <= float(right)
 
                 if isinstance(left, str) and isinstance(right, str):
@@ -216,6 +228,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
             case TokenType.MINUS:
                 self._check_number_operands(expr.operator, left, right)
+
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) - int(right)
 
@@ -224,6 +237,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
             case TokenType.MODULO:
                 self._check_number_operands(expr.operator, left, right)
+
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) % int(right)
 
@@ -246,6 +260,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
             case TokenType.POWER:
                 self._check_number_operands(expr.operator, left, right)
+
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) ** int(right)
 
@@ -359,11 +374,16 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             temp = value
 
         if isinstance(expr.expression, Get):
-            self.visit_set_expr(
-                Set(expr.expression.obj, expr.expression.name, Literal(value))
-            )
+            obj: object = self._evaluate(expr.expression.obj)
+            if not isinstance(obj, Instance):
+                raise RuntimeError(expr.expression.name, "Only instances have fields.")
+            obj.set(expr.expression.name, value)
         else:
-            self.visit_assign_expr(Assign(expr.expression.name, Literal(value)))
+            distance: int = self._locals.get(expr.expression, -1)
+            if distance >= 0:
+                self._environment.assign_at(distance, expr.expression.name, value)
+            else:
+                self.globals.assign(expr.expression.name, value)
 
         return temp
 

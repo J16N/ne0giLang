@@ -126,6 +126,9 @@ class Scanner:
             case "|":
                 self._add_token(TokenType.OR if self._match("|") else TokenType.BIT_OR)
 
+            case "%":
+                self._add_token(TokenType.MODULO)
+
             case _:
                 if self._is_digit(c):
                     self._number()

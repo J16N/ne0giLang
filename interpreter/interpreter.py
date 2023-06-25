@@ -189,6 +189,14 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) - float(right)
 
+            case TokenType.MODULO:
+                self._check_number_operands(expr.operator, left, right)
+                if isinstance(left, int) and isinstance(right, int):
+                    return int(left) % int(right)
+
+                if isinstance(left, (float, int)) and isinstance(right, (float, int)):
+                    return float(left) % float(right)
+
             case TokenType.PLUS:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) + int(right)

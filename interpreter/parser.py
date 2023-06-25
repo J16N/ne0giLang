@@ -318,7 +318,7 @@ class Parser:
     def _factor(self: "Parser") -> Expr:
         expr: Expr = self._unary()
 
-        while self._match(TokenType.SLASH, TokenType.STAR):
+        while self._match(TokenType.SLASH, TokenType.STAR, TokenType.MODULO):
             operator: Token = self._previous()
             right: Expr = self._unary()
             expr = Binary(expr, operator, right)
@@ -338,7 +338,7 @@ class Parser:
             return Unary(operator, right)
 
         return self._exponent()
-    
+
     def _exponent(self: "Parser") -> Expr:
         expr: Expr = self._call()
 

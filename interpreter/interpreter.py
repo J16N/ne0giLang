@@ -199,6 +199,10 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                     expr.operator, "Operands must be two numbers or two strings."
                 )
 
+            case TokenType.POWER:
+                self._check_number_operands(expr.operator, left, right)
+                return cast(float, left) ** cast(float, right)
+
             case TokenType.SLASH:
                 self._check_number_operands(expr.operator, left, right)
                 if right == 0:

@@ -71,7 +71,7 @@ class Scanner:
             case ";":
                 self._add_token(TokenType.SEMICOLON)
             case "*":
-                self._add_token(TokenType.STAR)
+                self._add_token(TokenType.POWER if self._match("*") else TokenType.STAR)
             case "?":
                 self._add_token(TokenType.QUESTION)
             case ":":

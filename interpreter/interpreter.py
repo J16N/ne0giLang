@@ -317,6 +317,12 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             case TokenType.BANG:
                 return not self._is_truthy(right)
 
+            case TokenType.BIT_NOT:
+                if isinstance(right, int):
+                    return ~right
+
+                raise RuntimeError(expr.operator, "Operand must be an integer.")
+
             case TokenType.MINUS:
                 self._check_number_operand(expr.operator, right)
                 return -cast(float, right)

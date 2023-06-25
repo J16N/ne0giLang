@@ -44,6 +44,7 @@ class TokenType(Enum):
     # Keywords
     AND = "&&"
     BIT_AND = "&"
+    BIT_NOT = "~"
     BIT_OR = "|"
     BREAK = "break"
     CLASS = "class"

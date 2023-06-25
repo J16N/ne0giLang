@@ -123,6 +123,9 @@ class Scanner:
                     TokenType.AND if self._match("&") else TokenType.BIT_AND
                 )
 
+            case "~":
+                self._add_token(TokenType.BIT_NOT)
+
             case "|":
                 self._add_token(TokenType.OR if self._match("|") else TokenType.BIT_OR)
 

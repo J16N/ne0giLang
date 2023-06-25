@@ -37,7 +37,7 @@ equality      := comparison ( ( "!=" | "==" ) comparison )* ;
 comparison    := term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term          := factor ( ( "-" | "+" ) factor )* ;
 factor        := unary ( ( "/" | "*" | "%" ) unary )* ;
-unary         := ( "!" | "-" | "-- | "+" | "++" ) unary
+unary         := ( "!" | "-" | "-- | "+" | "++" | "~" ) unary
                | exponent ;
 exponent      := call ( "**" call )* ;
 call		  := primary ( "(" arguments? ")" | "." IDENTIFIER )* ;

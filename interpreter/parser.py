@@ -330,6 +330,7 @@ class Parser:
             TokenType.BANG,
             TokenType.MINUS,
             TokenType.PLUS,
+            TokenType.BIT_NOT,
             TokenType.INCREMENT,
             TokenType.DECREMENT,
         ):

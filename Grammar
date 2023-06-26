@@ -6,10 +6,10 @@ declaration   := classDecl
                | statement ;
 classDecl     := "class" IDENTIFIER "{" funcExpr* "}" ;
 funcDecl      := "fn" funcExpr ;
-funcExpr	  := IDENTIFIER "(" parameters? ")" block ;
+funcExpr	    := IDENTIFIER "(" parameters? ")" block ;
 parameters    := IDENTIFIER ( "," IDENTIFIER )* ;
 multiVarDecl  := "var" varDecl ( "," varDecl )* ";" ;
-varDecl	 	  := IDENTIFIER ( "=" assignment )? ;
+varDecl	 	    := IDENTIFIER ( "=" assignment )? ;
 statement     := exprStmt 
                | forStmt 
                | ifStmt  
@@ -24,7 +24,7 @@ forStmt       := "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expressi
 ifStmt        := "if" "(" expression ")" statement ( "else" statement )? ;
 returnStmt    := "return" expression? ";" ;
 whileStmt     := "while" "(" expression ")" statement ;
-break	   	  := "break" ";" ;
+break	   	    := "break" ";" ;
 expression    := comma ( "," comma )* ;
 comma         := assignment ;
 assignment    := (call ".")? IDENTIFIER ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
@@ -45,7 +45,7 @@ factor        := unary ( ( "/" | "*" | "%" ) unary )* ;
 unary         := ( "!" | "-" | "-- | "+" | "++" | "~" ) unary
                | exponent ;
 exponent      := call ( "**" call )* ;
-call		  := primary ( "(" arguments? ")" | "." IDENTIFIER )* ( "++" | "--" )? ;
+call		      := primary ( "(" arguments? ")" | "." IDENTIFIER )* ( "++" | "--" )? ;
 arguments     := assignment ( "," assignment )* ;
 primary       := "true" | "false" | "nil" | "this"
                | NUMBER | STRING | 

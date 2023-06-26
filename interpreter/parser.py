@@ -258,6 +258,30 @@ class Parser:
 
             self._error(equals, "Invalid assignment target.")
 
+        if self._match(
+            TokenType.PLUS_EQUAL,
+            TokenType.MINUS_EQUAL,
+            TokenType.STAR_EQUAL,
+            TokenType.SLASH_EQUAL,
+            TokenType.MODULO_EQUAL,
+            TokenType.BIT_XOR_EQUAL,
+            TokenType.BIT_LSHIFT_EQUAL,
+            TokenType.BIT_RSHIFT_EQUAL,
+            TokenType.BIT_AND_EQUAL,
+            TokenType.BIT_OR_EQUAL,
+        ):
+            equals: Token = self._previous()
+            value: Expr = self._assignment()
+
+            if isinstance(expr, Variable):
+                name: Token = expr.name
+                return Assign(name, Binary(expr, equals, value))
+
+            elif isinstance(expr, Get):
+                return Set(expr.obj, expr.name, Binary(expr, equals, value))
+
+            self._error(equals, "Invalid assignment target.")
+
         return expr
 
     def _ternary(self: "Parser") -> Expr:

@@ -27,7 +27,8 @@ whileStmt     := "while" "(" expression ")" statement ;
 break	   	  := "break" ";" ;
 expression    := comma ( "," comma )* ;
 comma         := assignment ;
-assignment    := (call ".")? IDENTIFIER "=" assignment 
+assignment    := (call ".")? IDENTIFIER ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
+                 assignment 
                | ternary ;
 ternary       := logical_or "?" ternary ":" ternary
                | logical_or ;

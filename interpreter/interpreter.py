@@ -137,31 +137,31 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             case TokenType.BANG_EQUAL:
                 return not self._is_equal(left, right)
 
-            case TokenType.BIT_AND:
+            case TokenType.BIT_AND | TokenType.BIT_AND_EQUAL:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) & int(right)
 
                 raise RuntimeError(expr.operator, "Operands must be two integers.")
 
-            case TokenType.BIT_LSHIFT:
+            case TokenType.BIT_LSHIFT | TokenType.BIT_LSHIFT_EQUAL:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) << int(right)
 
                 raise RuntimeError(expr.operator, "Operands must be two integers.")
 
-            case TokenType.BIT_OR:
+            case TokenType.BIT_OR | TokenType.BIT_OR_EQUAL:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) | int(right)
 
                 raise RuntimeError(expr.operator, "Operands must be two integers.")
 
-            case TokenType.BIT_RSHIFT:
+            case TokenType.BIT_RSHIFT | TokenType.BIT_RSHIFT_EQUAL:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) >> int(right)
 
                 raise RuntimeError(expr.operator, "Operands must be two integers.")
 
-            case TokenType.BIT_XOR:
+            case TokenType.BIT_XOR | TokenType.BIT_XOR_EQUAL:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) ^ int(right)
 
@@ -226,7 +226,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                     expr.operator, "Operands must be two numbers or two strings."
                 )
 
-            case TokenType.MINUS:
+            case TokenType.MINUS | TokenType.MINUS_EQUAL:
                 self._check_number_operands(expr.operator, left, right)
 
                 if isinstance(left, int) and isinstance(right, int):
@@ -235,7 +235,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) - float(right)
 
-            case TokenType.MODULO:
+            case TokenType.MODULO | TokenType.MODULO_EQUAL:
                 self._check_number_operands(expr.operator, left, right)
 
                 if isinstance(left, int) and isinstance(right, int):
@@ -244,7 +244,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) % float(right)
 
-            case TokenType.PLUS:
+            case TokenType.PLUS | TokenType.PLUS_EQUAL:
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) + int(right)
 
@@ -267,13 +267,13 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 if isinstance(left, (float, int)) and isinstance(right, (float, int)):
                     return float(left) ** float(right)
 
-            case TokenType.SLASH:
+            case TokenType.SLASH | TokenType.SLASH_EQUAL:
                 self._check_number_operands(expr.operator, left, right)
                 if right == 0:
                     raise RuntimeError(expr.operator, "Division by zero.")
                 return cast(float, left) / cast(float, right)
 
-            case TokenType.STAR:
+            case TokenType.STAR | TokenType.STAR_EQUAL:
                 self._check_number_operands(expr.operator, left, right)
                 if isinstance(left, int) and isinstance(right, int):
                     return int(left) * int(right)

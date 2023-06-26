@@ -60,52 +60,58 @@ class Scanner:
                 self._add_token(TokenType.COMMA)
             case ".":
                 self._add_token(TokenType.DOT)
+            case "-" if self._match("="):
+                self._add_token(TokenType.MINUS_EQUAL)
+            case "-" if self._match("-"):
+                self._add_token(TokenType.DECREMENT)
             case "-":
-                self._add_token(
-                    TokenType.DECREMENT if self._match("-") else TokenType.MINUS
-                )
+                self._add_token(TokenType.MINUS)
+            case "+" if self._match("="):
+                self._add_token(TokenType.PLUS_EQUAL)
+            case "+" if self._match("+"):
+                self._add_token(TokenType.INCREMENT)
             case "+":
-                self._add_token(
-                    TokenType.INCREMENT if self._match("+") else TokenType.PLUS
-                )
+                self._add_token(TokenType.PLUS)
             case ";":
                 self._add_token(TokenType.SEMICOLON)
+            case "*" if self._match("="):
+                self._add_token(TokenType.STAR_EQUAL)
+            case "*" if self._match("*"):
+                self._add_token(TokenType.POWER)
             case "*":
-                self._add_token(TokenType.POWER if self._match("*") else TokenType.STAR)
+                self._add_token(TokenType.STAR)
             case "?":
                 self._add_token(TokenType.QUESTION)
             case ":":
                 self._add_token(TokenType.COLON)
-
+            case "!" if self._match("="):
+                self._add_token(TokenType.BANG_EQUAL)
             case "!":
-                self._add_token(
-                    TokenType.BANG_EQUAL if self._match("=") else TokenType.BANG
-                )
-
+                self._add_token(TokenType.BANG)
+            case "=" if self._match("="):
+                self._add_token(TokenType.EQUAL_EQUAL)
             case "=":
+                self._add_token(TokenType.EQUAL)
+            case "<" if self._match("<"):
                 self._add_token(
-                    TokenType.EQUAL_EQUAL if self._match("=") else TokenType.EQUAL
+                    TokenType.BIT_LSHIFT_EQUAL
+                    if self._match("=")
+                    else TokenType.BIT_LSHIFT
                 )
-
+            case "<" if self._match("="):
+                self._add_token(TokenType.LESS_EQUAL)
             case "<":
-                if self._match("<"):
-                    self._add_token(TokenType.BIT_LSHIFT)
-
-                elif self._match("="):
-                    self._add_token(TokenType.LESS_EQUAL)
-
-                else:
-                    self._add_token(TokenType.LESS)
-
+                self._add_token(TokenType.LESS)
+            case ">" if self._match("="):
+                self._add_token(TokenType.GREATER_EQUAL)
+            case ">" if self._match(">"):
+                self._add_token(
+                    TokenType.BIT_RSHIFT_EQUAL
+                    if self._match("=")
+                    else TokenType.BIT_RSHIFT
+                )
             case ">":
-                if self._match("="):
-                    self._add_token(TokenType.GREATER_EQUAL)
-
-                elif self._match(">"):
-                    self._add_token(TokenType.BIT_RSHIFT)
-
-                else:
-                    self._add_token(TokenType.GREATER)
+                self._add_token(TokenType.GREATER)
 
             case "/" if self._match("/"):
                 # A comment goes until the end of the line.
@@ -114,34 +120,37 @@ class Scanner:
 
             case "/" if self._match("*"):
                 self._block_comment()
-
+            case "/" if self._match("="):
+                self._add_token(TokenType.SLASH_EQUAL)
             case "/":
                 self._add_token(TokenType.SLASH)
-
             case " " | "\r" | "\t":
                 # Ignore whitespace.
                 pass
-
             case "\n":
                 self._line += 1
-
             case '"':
                 self._string()
-
+            case "&" if self._match("&"):
+                self._add_token(TokenType.AND)
+            case "&" if self._match("="):
+                self._add_token(TokenType.BIT_AND_EQUAL)
             case "&":
-                self._add_token(
-                    TokenType.AND if self._match("&") else TokenType.BIT_AND
-                )
-
+                self._add_token(TokenType.BIT_AND)
             case "~":
                 self._add_token(TokenType.BIT_NOT)
-
+            case "|" if self._match("|"):
+                self._add_token(TokenType.OR)
+            case "|" if self._match("="):
+                self._add_token(TokenType.BIT_OR_EQUAL)
             case "|":
-                self._add_token(TokenType.OR if self._match("|") else TokenType.BIT_OR)
-
+                self._add_token(TokenType.BIT_OR)
+            case "%" if self._match("="):
+                self._add_token(TokenType.MODULO_EQUAL)
             case "%":
                 self._add_token(TokenType.MODULO)
-
+            case "^" if self._match("="):
+                self._add_token(TokenType.BIT_XOR_EQUAL)
             case "^":
                 self._add_token(TokenType.BIT_XOR)
 

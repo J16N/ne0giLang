@@ -17,7 +17,7 @@ class TokenType(Enum):
     QUESTION = "?"
     COLON = ":"
 
-    # One or two character tokens
+    # One or more than one character tokens
     BANG = "!"
     BANG_EQUAL = "!="
     EQUAL = "="
@@ -35,6 +35,18 @@ class TokenType(Enum):
     SLASH_EQUAL = "/="
     MODULO = "%"
     MODULO_EQUAL = "%="
+    AND = "&&"
+    BIT_AND = "&"
+    BIT_AND_EQUAL = "&="
+    BIT_NOT = "~"
+    BIT_LSHIFT = "<<"
+    BIT_LSHIFT_EQUAL = "<<="
+    BIT_OR = "|"
+    BIT_OR_EQUAL = "|="
+    BIT_RSHIFT = ">>"
+    BIT_RSHIFT_EQUAL = ">>="
+    BIT_XOR = "^"
+    BIT_XOR_EQUAL = "^="
 
     # Literals
     IDENTIFIER = "IDENTIFIER"
@@ -42,13 +54,6 @@ class TokenType(Enum):
     NUMBER = "NUMBER"
 
     # Keywords
-    AND = "&&"
-    BIT_AND = "&"
-    BIT_NOT = "~"
-    BIT_LSHIFT = "<<"
-    BIT_OR = "|"
-    BIT_RSHIFT = ">>"
-    BIT_XOR = "^"
     BREAK = "break"
     CLASS = "class"
     CONTINUE = "continue"

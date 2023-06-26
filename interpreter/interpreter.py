@@ -43,7 +43,6 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     def __init__(self: "Interpreter", agent: "Lox", repl: bool = False):
         self._agent: Final["Lox"] = agent
         self.repl: Final[bool] = repl
-        self._print_called: bool = False
         self.globals: Final[Environment] = Environment()
         self._environment: Environment = self.globals
         self._locals: Final[dict[Expr, int]] = {}
@@ -286,9 +285,6 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
     def visit_call_expr(self: "Interpreter", expr: Call) -> object:
         callee: object = self._evaluate(expr.callee)
-        if isinstance(callee, Print):
-            self._print_called = True
-
         arguments: list[object] = [
             self._evaluate(argument) for argument in expr.arguments
         ]
@@ -442,9 +438,8 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
     def visit_expression_stmt(self: "Interpreter", stmt: Expression) -> None:
         value: object = self._evaluate(stmt.expression)
-        if self.repl and not self._print_called:
+        if self.repl and value:
             print(self.stringify(value))
-        self._print_called = False
 
     def visit_for_stmt(self: "Interpreter", stmt: For) -> None:
         self._execute(stmt.initializer)

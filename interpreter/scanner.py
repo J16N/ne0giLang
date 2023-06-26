@@ -30,7 +30,7 @@ class Scanner:
         self._tokens: list[Token] = []
         self._start: int = 0
         self._current: int = 0
-        self._column: int = 1
+        self._column: int = 0
         self._line: int = 1
         self._source: str = source
         self._agent: Lox = agent

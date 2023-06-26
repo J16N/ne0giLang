@@ -355,31 +355,14 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         return self._lookup_variable(expr.keyword, expr)
 
     def visit_uarithmeticop_expr(self: "Interpreter", expr: UArithmeticOp) -> object:
-        if not isinstance(expr.expression, (Get, Variable)):
-            raise RuntimeError(
-                expr.operator, "Bad operand type for increment operator."
-            )
-
-        value: object = self._evaluate(expr.expression)
+        value: object = self._evaluate(expr.value)
         if not isinstance(value, (float, int)):
-            raise RuntimeError(expr.operator, "Can only increment numbers.")
+            raise RuntimeError(expr.operator, "Unsupported type operand.")
 
         temp: object = value
-        value = value + 1 if expr.operator.type == TokenType.INCREMENT else value - 1
+        value = self._evaluate(expr.expression)
         if expr.is_prefix:
             temp = value
-
-        if isinstance(expr.expression, Get):
-            obj: object = self._evaluate(expr.expression.obj)
-            if not isinstance(obj, Instance):
-                raise RuntimeError(expr.expression.name, "Only instances have fields.")
-            obj.set(expr.expression.name, value)
-        else:
-            distance: int = self._locals.get(expr.expression, -1)
-            if distance >= 0:
-                self._environment.assign_at(distance, expr.expression.name, value)
-            else:
-                self.globals.assign(expr.expression.name, value)
 
         return temp
 

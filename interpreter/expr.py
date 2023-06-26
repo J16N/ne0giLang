@@ -204,17 +204,22 @@ class This(Expr):
 
 class UArithmeticOp(Expr):
     def __init__(
-        self: "UArithmeticOp", operator: Token, expression: Expr, is_prefix: bool = True
+        self: "UArithmeticOp",
+        operator: Token,
+        expression: Expr,
+        value: Expr,
+        is_prefix: bool = True,
     ):
         self.operator: Final[Token] = operator
         self.expression: Final[Expr] = expression
         self.is_prefix: Final[bool] = is_prefix
+        self.value: Final[Expr] = value
 
     def accept(self: "UArithmeticOp", visitor: "Visitor[T]") -> T:
         return visitor.visit_uarithmeticop_expr(self)
 
     def __repr__(self: "UArithmeticOp") -> str:
-        return f"UArithmeticOp(operator={self.operator}, expression={self.expression})"
+        return f"UArithmeticOp(operator={self.operator}, expression={self.expression}, is_prefix={self.is_prefix})"
 
     def __str__(self: "UArithmeticOp") -> str:
         return self.__repr__()

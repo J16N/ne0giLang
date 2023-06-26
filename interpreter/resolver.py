@@ -184,12 +184,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve_local(expr, expr.keyword)
 
     def visit_uarithmeticop_expr(self: "Resolver", expr: UArithmeticOp) -> None:
-        if isinstance(expr.expression, (Get, Variable)):
-            self._resolve_expr(expr.expression)
-            return
-
-        name: str = "increment" if expr.operator.type.value == "++" else "decrement"
-        self._agent.error_on_token(expr.operator, f"Invalid {name} expression.")
+        self._resolve_expr(expr.expression)
 
     def visit_unary_expr(self: "Resolver", expr: Unary) -> None:
         self._resolve_expr(expr.right)

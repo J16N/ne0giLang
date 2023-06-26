@@ -25,6 +25,11 @@ from .token_type import TokenType
 if TYPE_CHECKING:
     from .lox import Lox
 
+mapping: Final[dict[TokenType, TokenType]] = {
+    TokenType.INCREMENT: TokenType.PLUS,
+    TokenType.DECREMENT: TokenType.MINUS,
+}
+
 
 class ParseError(Exception):
     pass
@@ -411,8 +416,29 @@ class Parser:
         ):
             operator: Token = self._previous()
             right: Expr = self._unary()
+
             if operator.type in (TokenType.INCREMENT, TokenType.DECREMENT):
-                return UArithmeticOp(operator, right)
+                if not isinstance(right, (Get, Variable)):
+                    self._error(operator, "Invalid assignment target.")
+
+                value: Expr = right
+                new_operator: Token = Token(
+                    mapping[operator.type],
+                    operator.lexeme,
+                    operator.literal,
+                    operator.line,
+                    operator.column,
+                )
+
+                if isinstance(right, Get):
+                    right = Set(
+                        right.obj, right.name, Binary(right, new_operator, Literal(1))
+                    )
+
+                elif isinstance(right, Variable):
+                    right = Assign(right.name, Binary(right, new_operator, Literal(1)))
+
+                return UArithmeticOp(operator, right, value)
 
             return Unary(operator, right)
 
@@ -446,7 +472,24 @@ class Parser:
 
         if self._match(TokenType.INCREMENT, TokenType.DECREMENT):
             operator: Token = self._previous()
-            expr = UArithmeticOp(operator, expr, False)
+
+            if not isinstance(expr, (Get, Variable)):
+                self._error(operator, "Invalid assignment target.")
+
+            new_operator: Token = Token(
+                mapping[operator.type],
+                operator.lexeme,
+                operator.literal,
+                operator.line,
+                operator.column,
+            )
+            value: Expr = expr
+            if isinstance(expr, Get):
+                expr = Set(expr.obj, expr.name, Binary(expr, new_operator, Literal(1)))
+            elif isinstance(expr, Variable):
+                expr = Assign(expr.name, Binary(expr, new_operator, Literal(1)))
+
+            expr = UArithmeticOp(operator, expr, value, False)
 
         return expr
 

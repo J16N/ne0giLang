@@ -221,7 +221,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         self._begin_scope()
         self._scopes[-1][
-            Token(TokenType.THIS, "this", None, stmt.name.line + 1)
+            Token(TokenType.THIS, "this", None, stmt.name.line + 1, 0)
         ] = VariableTracker(True)
 
         for method in stmt.methods:

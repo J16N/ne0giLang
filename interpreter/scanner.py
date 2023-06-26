@@ -30,6 +30,7 @@ class Scanner:
         self._tokens: list[Token] = []
         self._start: int = 0
         self._current: int = 0
+        self._column: int = 1
         self._line: int = 1
         self._source: str = source
         self._agent: Lox = agent
@@ -39,7 +40,7 @@ class Scanner:
             self._start = self._current
             self._scan_token()
 
-        self._tokens.append(Token(TokenType.EOF, "", None, self._line))
+        self._tokens.append(Token(TokenType.EOF, "", None, self._line, self._column))
         return self._tokens
 
     def _is_at_end(self: "Scanner") -> bool:
@@ -129,6 +130,7 @@ class Scanner:
                 pass
             case "\n":
                 self._line += 1
+                self._column = 0
             case '"':
                 self._string()
             case "&" if self._match("&"):
@@ -160,17 +162,20 @@ class Scanner:
                 elif self._is_alpha(c):
                     self._identifier()
                 else:
-                    self._agent.error_on_line(self._line, "Unexpected character.")
+                    self._agent.error_on_line(
+                        self._line, self._column, "Unexpected character."
+                    )
 
     def _advance(self: "Scanner") -> str:
         self._current += 1
+        self._column += 1
         return self._source[self._current - 1]
 
     def _add_token(
         self: "Scanner", type: TokenType, literal: Optional[object] = None
     ) -> None:
         text: str = self._source[self._start : self._current]
-        self._tokens.append(Token(type, text, literal, self._line))
+        self._tokens.append(Token(type, text, literal, self._line, self._column))
 
     def _match(self: "Scanner", expected: str) -> bool:
         if self._is_at_end():
@@ -193,7 +198,7 @@ class Scanner:
             self._advance()
 
         if self._is_at_end():
-            self._agent.error_on_line(self._line, "Unterminated string.")
+            self._agent.error_on_line(self._line, self._column, "Unterminated string.")
             return
 
         # The closing ".

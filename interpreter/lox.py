@@ -87,24 +87,24 @@ class Lox:
         # print(AstPrinter().print(expression))
 
     @classmethod
-    def error_on_line(cls, line: int, message: str) -> None:
-        cls.report(line, "", message)
+    def error_on_line(cls, line: int, column: int, message: str) -> None:
+        cls.report(line, column, "", message)
 
     @classmethod
     def error_on_token(cls, token: Token, message: str) -> None:
         if token.type == TokenType.EOF:
-            cls.report(token.line, "at end", message)
+            cls.report(token.line, token.column, "at end", message)
         else:
-            cls.report(token.line, f"at '{token.lexeme}'", message)
+            cls.report(token.line, token.column, f"at '{token.lexeme}'", message)
 
     @classmethod
-    def report(cls, line: int, where: str, message: str) -> None:
-        print(f"[line {line}] Error {where}: {message}")
+    def report(cls, line: int, column: int, where: str, message: str) -> None:
+        print(f"[line {line}:{column}] Error {where}: {message}")
         cls.had_error = True
 
     @classmethod
     def runtime_error(cls, error: RuntimeError) -> None:
-        print(f"[line {error.token.line}] At '{error.token.lexeme}': {error.message}")
+        print(f"[line {error.token.line}:{error.token.column}] {error.message}")
         cls.had_runtime_error = True
 
     @classmethod

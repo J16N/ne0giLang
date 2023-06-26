@@ -5,12 +5,18 @@ from .token_type import TokenType
 
 class Token:
     def __init__(
-        self: "Token", type: TokenType, lexeme: str, literal: object, line: int
+        self: "Token",
+        type: TokenType,
+        lexeme: str,
+        literal: object,
+        line: int,
+        column: int,
     ):
         self.type: Final[TokenType] = type
         self.lexeme: Final[str] = lexeme
         self.literal: Final[object] = literal
         self.line: Final[int] = line
+        self.column: Final[int] = column
 
     def __repr__(self: "Token") -> str:
         return f"Token(type={self.type.name}, lexeme='{self.lexeme}', literal={self.literal})"

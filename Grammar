@@ -8,7 +8,7 @@ classDecl     := "class" IDENTIFIER ( "<" IDENTIFIER )? "{" funcExpr* "}" ;
 funcDecl      := "fn" funcExpr ;
 funcExpr	    := IDENTIFIER "(" parameters? ")" block ;
 parameters    := IDENTIFIER ( "," IDENTIFIER )* ;
-multiVarDecl  := "var" varDecl ( "," varDecl )* ";" ;
+multiVarDecl  := "let" varDecl ( "," varDecl )* ";" ;
 varDecl	 	    := IDENTIFIER ( "=" assignment )? ;
 statement     := exprStmt 
                | forStmt 

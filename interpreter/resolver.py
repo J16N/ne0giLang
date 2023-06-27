@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Final, Optional
+from typing import TYPE_CHECKING, Final, Optional, cast
 
 from .expr import Assign, Binary, Call, Comma, Expr
 from .expr import Function as FunctionExpr
@@ -166,25 +166,22 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def visit_call_expr(self: "Resolver", expr: Call) -> None:
         self._resolve_expr(expr.callee)
 
-        if (
-            self._current_constructor_type == ConstructorType.SUPER
-            and self._current_function != FunctionType.INITIALIZER
-        ):
-            self._agent.error_on_token(
-                expr.paren,
-                "Can't use 'super' constructor in a function that is not an initializer.",
-            )
-            return
+        if self._current_constructor_type == ConstructorType.SUPER:
+            super: Super = cast(Super, expr.callee)
 
-        if (
-            self._current_constructor_type == ConstructorType.SUPER
-            and self._statement_index != 0
-        ):
-            self._agent.error_on_token(
-                expr.paren,
-                "'super' constructor must be called before any other statement.",
-            )
-            return
+            if self._current_function != FunctionType.INITIALIZER:
+                self._agent.error_on_token(
+                    super.keyword,
+                    "Can't use 'super' constructor in a function that is not an initializer.",
+                )
+                return
+
+            if self._statement_index != 0:
+                self._agent.error_on_token(
+                    super.keyword,
+                    "'super' constructor must be called before any other statement.",
+                )
+                return
 
         for argument in expr.arguments:
             self._resolve_expr(argument)

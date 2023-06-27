@@ -4,7 +4,7 @@ from .token import Token
 from .token_type import TokenType
 
 if TYPE_CHECKING:
-    from .lox import Lox
+    from .ne0gi import Ne0giLang
 
 
 class Scanner:
@@ -17,23 +17,23 @@ class Scanner:
         "for": TokenType.FOR,
         "fn": TokenType.FN,
         "if": TokenType.IF,
+        "let": TokenType.LET,
         "nil": TokenType.NIL,
         "return": TokenType.RETURN,
         "super": TokenType.SUPER,
         "this": TokenType.THIS,
         "true": TokenType.TRUE,
-        "var": TokenType.VAR,
         "while": TokenType.WHILE,
     }
 
-    def __init__(self: "Scanner", source: str, agent: "Lox"):
+    def __init__(self: "Scanner", source: str, agent: "Ne0giLang"):
         self._tokens: list[Token] = []
         self._start: int = 0
         self._current: int = 0
         self._column: int = 0
         self._line: int = 1
         self._source: str = source
-        self._agent: Lox = agent
+        self._agent: Ne0giLang = agent
 
     def scan_tokens(self: "Scanner") -> list[Token]:
         while not self._is_at_end():

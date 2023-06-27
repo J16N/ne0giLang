@@ -37,12 +37,12 @@ from .types import Uninitialized
 from .utils import Clock, Print
 
 if TYPE_CHECKING:
-    from .lox import Lox
+    from .ne0gi import Ne0giLang
 
 
 class Interpreter(ExprVisitor[object], StmtVisitor[None]):
-    def __init__(self: "Interpreter", agent: "Lox", repl: bool = False):
-        self._agent: Final["Lox"] = agent
+    def __init__(self: "Interpreter", agent: "Ne0giLang", repl: bool = False):
+        self._agent: Final["Ne0giLang"] = agent
         self.repl: Final[bool] = repl
         self.globals: Final[Environment] = Environment()
         self._environment: Environment = self.globals

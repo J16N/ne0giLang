@@ -24,7 +24,7 @@ from .token import Token
 from .token_type import TokenType
 
 if TYPE_CHECKING:
-    from .lox import Lox
+    from .ne0gi import Ne0giLang
 
 mapping: Final[dict[TokenType, TokenType]] = {
     TokenType.INCREMENT: TokenType.PLUS,
@@ -37,10 +37,10 @@ class ParseError(Exception):
 
 
 class Parser:
-    def __init__(self: "Parser", tokens: list[Token], agent: "Lox"):
+    def __init__(self: "Parser", tokens: list[Token], agent: "Ne0giLang"):
         self._tokens: Final[list[Token]] = tokens
         self._current: int = 0
-        self._agent: Final["Lox"] = agent
+        self._agent: Final["Ne0giLang"] = agent
         self._loop_depth: int = 0
 
     def parse(self: "Parser") -> list[Optional[Stmt]]:
@@ -59,7 +59,7 @@ class Parser:
             if self._match(TokenType.FN):
                 return self._function("function")
 
-            if self._match(TokenType.VAR):
+            if self._match(TokenType.LET):
                 return self._multi_var_declaration()
 
             return self._statement()
@@ -170,7 +170,7 @@ class Parser:
     def _for_statement(self: "Parser") -> Stmt:
         self._consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.")
         initializer: Optional[Stmt] = None
-        if self._match(TokenType.VAR):
+        if self._match(TokenType.LET):
             initializer = self._multi_var_declaration()
         elif not self._match(TokenType.SEMICOLON):
             initializer = self._expression_statement()
@@ -580,7 +580,7 @@ class Parser:
                 return
 
             match self._peek().type:
-                case TokenType.CLASS | TokenType.FN | TokenType.VAR | TokenType.FOR | TokenType.IF | TokenType.WHILE | TokenType.RETURN:
+                case TokenType.CLASS | TokenType.FN | TokenType.LET | TokenType.FOR | TokenType.IF | TokenType.WHILE | TokenType.RETURN:
                     return
 
                 case _:

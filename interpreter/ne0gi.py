@@ -13,7 +13,7 @@ from .token import Token
 from .token_type import TokenType
 
 
-class Lox:
+class Ne0giLang:
     had_error: ClassVar[bool] = False
     had_runtime_error: ClassVar[bool] = False
     _interpreter: ClassVar[Interpreter]
@@ -21,14 +21,18 @@ class Lox:
     @classmethod
     def execute(cls, file: Optional[str] = None) -> None:
         if file:
-            cls._interpreter = Interpreter(cast(Lox, cls))
+            cls._interpreter = Interpreter(cast(Ne0giLang, cls))
             cls.run_file(file)
         else:
-            cls._interpreter = Interpreter(cast(Lox, cls), True)
+            cls._interpreter = Interpreter(cast(Ne0giLang, cls), True)
             cls.run_prompt()
 
     @classmethod
     def run_file(cls, file: str) -> None:
+        if not file.endswith((".ne", ".ne0gi")):
+            print("Error: File must have a '.ne' or '.ne0gi' extension.")
+            sys.exit(60)
+
         try:
             with open(file, "r") as f:
                 try:
@@ -65,9 +69,9 @@ class Lox:
 
     @classmethod
     def run(cls, source: str) -> None:
-        scanner: Scanner = Scanner(source, cast(Lox, cls))
+        scanner: Scanner = Scanner(source, cast(Ne0giLang, cls))
         tokens: list[Token] = scanner.scan_tokens()
-        parser: Parser = Parser(tokens, cast(Lox, cls))
+        parser: Parser = Parser(tokens, cast(Ne0giLang, cls))
         statements: list[Optional[Stmt]] = parser.parse()
 
         # Stop if there was a syntax error.
@@ -75,7 +79,7 @@ class Lox:
             return
 
         resolver: Resolver = Resolver(
-            cast(Lox, cls), cls._interpreter, cls._interpreter.repl
+            cast(Ne0giLang, cls), cls._interpreter, cls._interpreter.repl
         )
         resolver.resolve(statements)
 

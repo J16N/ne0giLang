@@ -31,7 +31,7 @@ from .token import Token
 from .token_type import TokenType
 
 if TYPE_CHECKING:
-    from .lox import Lox
+    from .ne0gi import Ne0giLang
 
 
 class FunctionType(Enum):
@@ -70,11 +70,14 @@ class VariableTracker:
 
 class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def __init__(
-        self: "Resolver", agent: "Lox", interpreter: Interpreter, repl: bool = False
+        self: "Resolver",
+        agent: "Ne0giLang",
+        interpreter: Interpreter,
+        repl: bool = False,
     ):
         self._interpreter: Final[Interpreter] = interpreter
         self._scopes: Final[list[dict[Token, VariableTracker]]] = []
-        self._agent: Final[Lox] = agent
+        self._agent: Final[Ne0giLang] = agent
         self._current_function: FunctionType = FunctionType.NONE
         self._current_class: ClassType = ClassType.NONE
         self._repl = repl

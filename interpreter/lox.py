@@ -111,4 +111,4 @@ class Lox:
 
     @classmethod
     def warn(cls, token: Token, message: str) -> None:
-        print(f"[line {token.line}] Warning: {message}")
+        print(f"[line {token.line}:{token.column}] Warning: {message}")

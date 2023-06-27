@@ -3,6 +3,7 @@ from typing import Final, Generic, Optional, TypeVar
 
 from .expr import Expr
 from .expr import Function as FunctionExpr
+from .expr import Variable
 from .token import Token
 
 T = TypeVar("T")
@@ -40,8 +41,14 @@ class Break(Stmt):
 
 
 class Class(Stmt):
-    def __init__(self: "Class", name: Token, methods: list["Function"]):
+    def __init__(
+        self: "Class",
+        name: Token,
+        superclass: Optional[Variable],
+        methods: list["Function"],
+    ):
         self.name: Final[Token] = name
+        self.superclass: Final[Optional[Variable]] = superclass
         self.methods: Final[list["Function"]] = methods
 
     def accept(self: "Class", visitor: "Visitor[T]") -> T:

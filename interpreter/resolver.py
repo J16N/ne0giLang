@@ -9,6 +9,7 @@ from .expr import (
     Literal,
     Logical,
     Set,
+    Super,
     Ternary,
     This,
     UArithmeticOp,
@@ -43,6 +44,14 @@ class FunctionType(Enum):
 class ClassType(Enum):
     NONE = "none"
     CLASS = "class"
+    SUBCLASS = "subclass"
+
+
+class ConstructorType(Enum):
+    NONE = "none"
+    OTHER = "other"
+    SUPER = "super"
+    THIS = "this"
 
 
 class VariableTracker:
@@ -68,7 +77,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._agent: Final[Lox] = agent
         self._current_function: FunctionType = FunctionType.NONE
         self._current_class: ClassType = ClassType.NONE
-        self.repl = repl
+        self._repl = repl
+        self._statement_index: int = 0
+        self._current_constructor_type: ConstructorType = ConstructorType.NONE
 
     def _begin_scope(self: "Resolver") -> None:
         self._scopes.append({})
@@ -88,11 +99,13 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     def _end_scope(self: "Resolver") -> None:
         scope: dict[Token, VariableTracker] = self._scopes.pop()
-        if self.repl:
+        if self._repl:
             return
         for name, tracker in scope.items():
-            if tracker.occurence == 1:
-                self._agent.warn(name, f"Unused variable '{name.lexeme}'.")
+            if tracker.occurence == 1 and name.lexeme not in ("this", "super"):
+                self._agent.warn(
+                    name, f"Unused variable '{name.lexeme}' in the current scope."
+                )
 
     def _resolve_expr(self: "Resolver", expr: Optional[Expr]) -> None:
         if expr:
@@ -102,7 +115,13 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self: "Resolver", func: FunctionExpr, type: FunctionType
     ) -> None:
         enclosing_function: FunctionType = self._current_function
+        previous_state: ConstructorType = self._current_constructor_type
         self._current_function = type
+        self._current_constructor_type = (
+            ConstructorType.OTHER
+            if type == FunctionType.INITIALIZER
+            else ConstructorType.NONE
+        )
         self._begin_scope()
 
         for param in func.params:
@@ -112,6 +131,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve_stmts(func.body)
         self._end_scope()
         self._current_function = enclosing_function
+        self._current_constructor_type = previous_state
 
     def _resolve_local(self: "Resolver", expr: Expr, name: Token) -> None:
         for i, scope in enumerate(reversed(self._scopes)):
@@ -125,7 +145,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             stmt.accept(self)
 
     def _resolve_stmts(self: "Resolver", stmts: list[Optional[Stmt]]) -> None:
-        for stmt in stmts:
+        self._statement_index = 0
+        for i, stmt in enumerate(stmts):
+            self._statement_index = i
             self._resolve_stmt(stmt)
 
     def resolve(self: "Resolver", statements: list[Optional[Stmt]]) -> None:
@@ -143,6 +165,27 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     def visit_call_expr(self: "Resolver", expr: Call) -> None:
         self._resolve_expr(expr.callee)
+
+        if (
+            self._current_constructor_type == ConstructorType.SUPER
+            and self._current_function != FunctionType.INITIALIZER
+        ):
+            self._agent.error_on_token(
+                expr.paren,
+                "Can't use 'super' constructor in a function that is not an initializer.",
+            )
+            return
+
+        if (
+            self._current_constructor_type == ConstructorType.SUPER
+            and self._statement_index != 0
+        ):
+            self._agent.error_on_token(
+                expr.paren,
+                "'super' constructor must be called before any other statement.",
+            )
+            return
+
         for argument in expr.arguments:
             self._resolve_expr(argument)
 
@@ -153,7 +196,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def visit_function_expr(self: "Resolver", expr: FunctionExpr) -> None:
         self._resolve_function(expr, FunctionType.FUNCTION)
 
-    def visit_get_expr(self: "Resolver", expr: "Get") -> None:
+    def visit_get_expr(self: "Resolver", expr: Get) -> None:
         self._resolve_expr(expr.obj)
 
     def visit_grouping_expr(self: "Resolver", expr: Grouping) -> None:
@@ -166,9 +209,28 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve_expr(expr.left)
         self._resolve_expr(expr.right)
 
-    def visit_set_expr(self: "Resolver", expr: "Set") -> None:
+    def visit_set_expr(self: "Resolver", expr: Set) -> None:
         self._resolve_expr(expr.value)
         self._resolve_expr(expr.obj)
+
+    def visit_super_expr(self: "Resolver", expr: Super) -> None:
+        if self._current_class == ClassType.NONE:
+            self._agent.error_on_token(
+                expr.keyword, f"Cannot use '{expr.keyword.lexeme}' outside class."
+            )
+            return
+
+        elif self._current_class != ClassType.SUBCLASS:
+            self._agent.error_on_token(
+                expr.keyword,
+                f"Cannot use '{expr.keyword.lexeme}' in class with no superclass.",
+            )
+            return
+
+        self._resolve_local(expr, expr.keyword)
+
+        if expr.method is None:
+            self._current_constructor_type = ConstructorType.SUPER
 
     def visit_ternary_expr(self: "Resolver", expr: Ternary) -> None:
         self._resolve_expr(expr.condition)
@@ -214,6 +276,19 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._declare(stmt.name)
         self._define(stmt.name)
 
+        if stmt.superclass:
+            self._current_class = ClassType.SUBCLASS
+            if stmt.name.lexeme == stmt.superclass.name.lexeme:
+                self._agent.error_on_token(
+                    stmt.superclass.name, "A class cannot inherit from itself."
+                )
+
+            self._resolve_expr(stmt.superclass)
+            self._begin_scope()
+            self._scopes[-1][
+                Token(TokenType.SUPER, "super", None, stmt.name.line, 0)
+            ] = VariableTracker(True)
+
         self._begin_scope()
         self._scopes[-1][
             Token(TokenType.THIS, "this", None, stmt.name.line + 1, 0)
@@ -228,6 +303,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             self._resolve_function(method.function, declaration)
 
         self._end_scope()
+
+        if stmt.superclass:
+            self._end_scope()
+
         self._current_class = enclosing_class
 
     def visit_continue_stmt(self: "Resolver") -> None:

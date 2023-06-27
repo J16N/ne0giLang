@@ -11,6 +11,7 @@ from .expr import (
     Literal,
     Logical,
     Set,
+    Super,
     Ternary,
     This,
     UArithmeticOp,
@@ -343,6 +344,28 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         obj.set(expr.name, value)
         return value
 
+    def visit_super_expr(self: "Interpreter", expr: Super) -> object:
+        distance: int = self._locals[expr]
+        superclass: Optional[Class] = cast(
+            Class, self._environment.get_at(distance, "super")
+        )
+        object: Optional[Instance] = cast(
+            Instance, self._environment.get_at(distance - 1, "this")
+        )
+
+        method: Optional[Function] = superclass.find_method(
+            expr.method.lexeme if expr.method else superclass.name
+        )
+        if method:
+            return method.bind(object)
+
+        if expr.method:
+            raise RuntimeError(
+                expr.method, f"Undefined property '{expr.method.lexeme}'."
+            )
+
+        raise RuntimeError(expr.keyword, "Invalid use of 'super'.")
+
     def visit_ternary_expr(self: "Interpreter", expr: Ternary) -> object:
         condition: object = self._evaluate(expr.condition)
         return (
@@ -402,8 +425,24 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         raise Break()
 
     def visit_class_stmt(self: "Interpreter", stmt: ClassStmt) -> None:
-        self._environment.define(stmt.name.lexeme, None)
-        methods: dict[str, Function] = {}
+        superclass: Optional[object] = None
+        if stmt.superclass:
+            superclass = self._evaluate(stmt.superclass)
+            if not isinstance(superclass, Class):
+                raise RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+
+        self._environment.define(stmt.name.lexeme, Uninitialized())
+
+        if stmt.superclass:
+            self._environment = Environment(self._environment)
+            self._environment.define("super", superclass)
+
+        methods: dict[str, Function] = {
+            # default constructor
+            stmt.name.lexeme: Function(
+                stmt.name.lexeme, FunctionExpr([], []), self._environment, True
+            )
+        }
         for method in stmt.methods:
             function: Function = Function(
                 method.name.lexeme,
@@ -413,7 +452,11 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
             )
             methods[method.name.lexeme] = function
 
-        klass: Class = Class(stmt.name.lexeme, methods)
+        klass: Class = Class(stmt.name.lexeme, superclass, methods)
+
+        if stmt.superclass and self._environment.enclosing:
+            self._environment = self._environment.enclosing
+
         self._environment.assign(stmt.name, klass)
 
     def visit_continue_stmt(self: "Interpreter") -> None:

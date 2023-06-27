@@ -10,14 +10,14 @@ class Environment:
         self: "Environment", enclosing: Optional["Environment"] = None
     ) -> None:
         self._values: Final[dict[str, object]] = {}
-        self._enclosing: Optional["Environment"] = enclosing
+        self.enclosing: Optional["Environment"] = enclosing
 
     def ancestor(self: "Environment", distance: int) -> "Environment":
         environment: "Environment" = self
         for _ in range(distance):
-            if environment._enclosing is None:
+            if environment.enclosing is None:
                 break
-            environment = environment._enclosing
+            environment = environment.enclosing
         return environment
 
     def assign(self: "Environment", name: Token, value: object) -> None:
@@ -25,8 +25,8 @@ class Environment:
             self.define(name.lexeme, value)
             return
 
-        if self._enclosing:
-            self._enclosing.assign(name, value)
+        if self.enclosing:
+            self.enclosing.assign(name, value)
             return
 
         raise RuntimeError(name, f"Undefined variable '{name.lexeme}'.")
@@ -44,8 +44,8 @@ class Environment:
                 return self._values[var]
             raise RuntimeError(name, f"Cannot access '{var}' before initialization.")
 
-        if self._enclosing:
-            return self._enclosing.get(name)
+        if self.enclosing:
+            return self.enclosing.get(name)
 
         raise RuntimeError(name, f"Undefined variable '{name.lexeme}'.")
 

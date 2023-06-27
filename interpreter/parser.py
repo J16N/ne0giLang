@@ -8,6 +8,7 @@ from .expr import (
     Literal,
     Logical,
     Set,
+    Super,
     Ternary,
     This,
     UArithmeticOp,
@@ -68,6 +69,12 @@ class Parser:
 
     def _class(self: "Parser") -> ClassStmt:
         name: Token = self._consume(TokenType.IDENTIFIER, "Expected class name.")
+
+        superclass: Optional[Variable] = None
+        if self._match(TokenType.LESS):
+            self._consume(TokenType.IDENTIFIER, "Expected superclass name.")
+            superclass = Variable(self._previous())
+
         self._consume(TokenType.LEFT_BRACE, "Expected '{' before class body.")
 
         methods: list[FunctionStmt] = []
@@ -75,7 +82,7 @@ class Parser:
             methods.append(self._function("method"))
 
         self._consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.")
-        return ClassStmt(name, methods)
+        return ClassStmt(name, superclass, methods)
 
     def _function(self: "Parser", kind: str) -> FunctionStmt:
         name: Token = self._consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
@@ -534,6 +541,18 @@ class Parser:
 
         if self._match(TokenType.TRUE):
             return Literal(True)
+
+        if self._match(TokenType.SUPER):
+            keyword: Token = self._previous()
+
+            if self._match(TokenType.DOT):
+                method: Optional[Token] = self._consume(
+                    TokenType.IDENTIFIER, "Expected superclass method name."
+                )
+                return Super(keyword, method)
+
+            self._consume(TokenType.LEFT_PAREN, "Expected '(' after 'super'.")
+            return self._finish_call(Super(keyword, None))
 
         raise self._error(self._peek(), "Expected expression.")
 

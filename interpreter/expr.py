@@ -170,6 +170,21 @@ class Set(Expr):
         return self.__repr__()
 
 
+class Super(Expr):
+    def __init__(self: "Super", keyword: Token, method: Optional[Token] = None):
+        self.keyword: Final[Token] = keyword
+        self.method: Final[Optional[Token]] = method
+
+    def accept(self: "Super", visitor: "Visitor[T]") -> T:
+        return visitor.visit_super_expr(self)
+
+    def __repr__(self: "Super") -> str:
+        return f"Super(keyword={self.keyword}, method={self.method})"
+
+    def __str__(self: "Super") -> str:
+        return self.__repr__()
+
+
 class Ternary(Expr):
     def __init__(
         self: "Ternary", condition: Expr, then_branch: Expr, else_branch: Expr
@@ -293,6 +308,10 @@ class Visitor(ABC, Generic[T]):
 
     @abstractmethod
     def visit_set_expr(self: "Visitor[T]", expr: Set) -> T:
+        ...
+
+    @abstractmethod
+    def visit_super_expr(self: "Visitor[T]", expr: Super) -> T:
         ...
 
     @abstractmethod

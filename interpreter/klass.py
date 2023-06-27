@@ -9,8 +9,14 @@ if TYPE_CHECKING:
 
 
 class Class(Callable):
-    def __init__(self: "Class", name: str, methods: dict[str, Function]):
+    def __init__(
+        self: "Class",
+        name: str,
+        superclass: Optional["Class"],
+        methods: dict[str, Function],
+    ):
         self.name: Final[str] = name
+        self.superclass: Final[Optional["Class"]] = superclass
         self.methods: Final[dict[str, Function]] = methods
 
     def __repr__(self: "Class") -> str:
@@ -33,4 +39,8 @@ class Class(Callable):
         return instance
 
     def find_method(self: "Class", name: str) -> Optional[Function]:
-        return self.methods.get(name)
+        if name in self.methods:
+            return self.methods.get(name)
+
+        if self.superclass:
+            return self.superclass.find_method(name)

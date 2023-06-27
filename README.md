@@ -1,2 +1,2 @@
-# lox.py
-Python implementation of Lox.
+# Ne0giLang
+A fun, easy-to-use, interpreted programming language.

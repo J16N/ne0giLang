@@ -254,8 +254,14 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
                 if isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
 
+                if isinstance(left, str):
+                    return str(left) + self.stringify(right)
+
+                if isinstance(right, str):
+                    return self.stringify(left) + str(right)
+
                 raise RuntimeError(
-                    expr.operator, "Operands must be two numbers or two strings."
+                    expr.operator, "Incompatible operator for two operands."
                 )
 
             case TokenType.POWER:

@@ -20,6 +20,7 @@ Ne0giLang is a dynamically typed, interpreted programming language basically cre
   - [For](#for)
 - [Functions](#functions)
 - [Classes](#classes)
+- [Built-in Functions](#built-in-functions)
 
 ## Installation
 Python 3.10 or higher is required.
@@ -356,4 +357,19 @@ class Student < Person {
 let student = Student("Bishakh Ne0gi", 1);
 print(student.getName());
 print(student.getRoll());
+```
+
+## Built-in Functions
+Ne0giLang has the following built-in functions as of now:
+
+### `print(args)`
+The `print` function is used to print the value of the expression passed to it.
+```py
+print("Hello World");
+```
+
+### `clock()`
+The `clock` function returns the number of seconds elapsed since the epoch.
+```py
+print(clock());
 ```

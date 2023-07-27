@@ -1,8 +1,7 @@
 # Ne0giLang
 Ne0giLang is a dynamically typed, interpreted programming language basically created for fun and understanding of how interpreters work in general. Several compiler design techniques and principles have been used in the process. The language is still in development so things can break unexpectedly.
 
-Table of Contents
-===
+## Table of Contents
 - [Installation](#installation)
 - [Execution](#execution)
 - [Quick Example](#quick-example)

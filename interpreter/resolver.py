@@ -152,6 +152,18 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         for i, stmt in enumerate(stmts):
             self._statement_index = i
             self._resolve_stmt(stmt)
+            if (
+                i == 0
+                and self._current_class == ClassType.SUBCLASS
+                and self._current_function == FunctionType.INITIALIZER
+                and self._current_constructor_type != ConstructorType.SUPER
+            ):
+                previous_scope: dict[Token, VariableTracker] = self._scopes[-2]
+                token: Token = list(previous_scope.keys())[-1]
+                self._agent.error_on_token(
+                    token,
+                    "The first statement of the initializer must be a call to super().",
+                )
 
     def resolve(self: "Resolver", statements: list[Optional[Stmt]]) -> None:
         self._begin_scope()

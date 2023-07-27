@@ -1,6 +1,27 @@
 # Ne0giLang
 Ne0giLang is a dynamically typed, interpreted programming language basically created for fun and understanding of how interpreters work in general. Several compiler design techniques and principles have been used in the process. The language is still in development so things can break unexpectedly.
 
+Table of Contents
+===
+- [Installation](#installation)
+- [Execution](#execution)
+- [Quick Example](#quick-example)
+- [Comments](#comments)
+- [Data Types](#data-types)
+- [Operators](#operators)
+  - [Arithmetic Operators](#arithmetic-operators)
+  - [Logical Operators](#logical-operators)
+  - [Bitwise Operators](#bitwise-operators)
+  - [Conditional Operators](#conditional-operators)
+- [Variables](#variables)
+- [Assignment](#assignment)
+- [Control Flow](#control-flow)
+  - [If-Else](#if-else)
+  - [While](#while)
+  - [For](#for)
+- [Functions](#functions)
+- [Classes](#classes)
+
 ## Installation
 Python 3.10 or higher is required.
 ```bash
